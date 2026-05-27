@@ -2,7 +2,7 @@
 
 > Plataforma de remesas internacionales con blockchain, Web3 e IA
 
-![Axora](./public/axoraLogo.png)
+![Axora](remesasmart/public/axoraLogo.png)
 
 ## ¿Qué es Axora?
 
