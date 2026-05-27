@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+.next/
+
+# Environment variables (IMPORTANTE - no subir keys)
+.env.local
+.env
+
+# Build
+out/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
