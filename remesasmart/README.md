@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🦎 Axora - Remesas Inteligentes
 
-## Getting Started
+> Plataforma de remesas internacionales con blockchain, Web3 e IA
 
-First, run the development server:
+![Axora](public/axoraLogo.png)
+
+## ¿Qué es Axora?
+
+Axora es una plataforma que permite enviar dinero a México de forma
+segura, rápida y con las comisiones más bajas del mercado, usando
+tecnología blockchain e inteligencia artificial.
+
+## Características
+
+- 💸 **Envío de remesas** con código de pago Oxxo
+- 🔗 **Blockchain** - Cada transacción registrada en Ethereum Sepolia
+- 🤖 **Axo** - Asistente IA disponible 24/7
+- ⚡ **Pagos automáticos** - CFE, agua, gas, internet
+- 📄 **Comprobante PDF** descargable
+- 🔐 **Login** con email o MetaMask
+
+## Comparativa de costos
+
+| Servicio | Fee | Llega de $500 USD |
+|----------|-----|-------------------|
+| Western Union | $8.00 | $492.00 |
+| MoneyGram | $6.50 | $493.50 |
+| Wise | $4.20 | $495.80 |
+| **Axora** | **$0.50** | **$499.50** |
+
+## Smart Contracts
+
+| Contrato | Red | Dirección |
+|----------|-----|-----------|
+| AxoraRemesas | Sepolia | 0xb1a7De81da0F8DB5b82Ef330c2858936E208A85b |
+| AxoraPagos | Sepolia | Pendiente |
+
+## Tech Stack
+
+- **Frontend:** Next.js 15, React, Tailwind CSS
+- **Blockchain:** Ethereum Sepolia, Solidity 0.8.19, Ethers.js
+- **IA:** Groq (Llama 3.3 70B)
+- **Web3:** MetaMask, Wagmi
+- **PDF:** jsPDF
+
+## Instalación
+
+```bash
+git clone https://github.com/TUUSUARIO/axora.git
+cd axora
+npm install --legacy-peer-deps
+```
+
+Crea `.env.local`:
+```
+GROQ_API_KEY=tu_api_key
+NEXT_PUBLIC_CONTRATO_REMESAS=0xb1a7De81da0F8DB5b82Ef330c2858936E208A85b
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Equipo
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Desarrollado para Hackathon 2026
