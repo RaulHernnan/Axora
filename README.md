@@ -6,7 +6,6 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![Ethereum](https://img.shields.io/badge/Ethereum-Sepolia-3C3C3D?logo=ethereum)](https://sepolia.etherscan.io/)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.19-363636?logo=solidity)](https://soliditylang.org/)
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ![Axora](remesasmart/public/axoraLogo.png)
 
@@ -311,27 +310,27 @@ Visita <a href="https://www.sepoliafaucet.io/">Sepolia Faucet</a> con tu direcci
 
 ## Licencia
 
-📄 Este proyecto está bajo la **Licencia MIT**.
+⚠️ **Este proyecto es de uso exclusivo para:**
+- Raul Hernnan Ortiz Mejia
+- Gerardo Alexis Antonio Velazquez
+- Leonardo Balbuena Bravo
+- Guadalupe Severiano Sanchez
 
-Eres libre de:
-- ✅ Usar el código comercialmente
-- ✅ Modificar el código
-- ✅ Distribuir el código
-- ✅ Usar privadamente
+**Queda prohibido:**
+- ❌ Usar el código comercialmente sin autorización
+- ❌ Copiar o reproducir el código
+- ❌ Distribuir el código sin permiso
+- ❌ Crear derivados del proyecto
 
-Con la única condición de incluir una copia de la licencia.
-
-Ver archivo [LICENSE](LICENSE) para más detalles.
+**Para cualquier uso o consulta:** Contacta al equipo de desarrollo.
 
 ---
 
 ## 📞 Contacto & Links
 
-- 📧 Email: [email@example.com]
-- 🌐 Sitio Web: [Tu sitio]
+- 📧 Email: [axoraa26@gmail.com](mailto:axoraa26@gmail.com)
+- 🎥 YouTube: [Axora Channel](https://youtube.com/@axora-j1z?si=Cz_w7jnE4LezVE4N)
 - 🐙 GitHub: [RaulHernnan](https://github.com/RaulHernnan)
-- 🐦 Twitter: [@axora]
-- 💬 Discord: [Canal de Axora]
 
 ---
 
