@@ -302,8 +302,10 @@ Visita <a href="https://www.sepoliafaucet.io/">Sepolia Faucet</a> con tu direcci
 
 | Miembro | Rol |
 |---------|-----|
-| Raúl Hernández | Lead Developer |
-| [Agrega miembros] | [Rol] |
+| Raul Hernnan Ortiz Mejia | Lead Developer |
+| Gerardo Alexis Antonio Velazquez | Colaborador |
+| Leonardo Balbuena Bravo | Colaborador |
+| Guadalupe Severiano Sanchez | Colaborador |
 
 ---
 
