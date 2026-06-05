@@ -336,8 +336,6 @@ Visita <a href="https://www.sepoliafaucet.io/">Sepolia Faucet</a> con tu direcci
 
 <div align="center">
 
-**Hecho con ❤️ para el Hackathon 2026**
-
-⭐ Si te gusta el proyecto, ¡dale una estrella!
+**💳 Axora: Remesas sin fronteras, con el mejor costo del mercado 🦎**
 
 </div>
