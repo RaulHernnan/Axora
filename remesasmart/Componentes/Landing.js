@@ -1,7 +1,278 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useIsMobile from "../lib/useIsMobile";
 import Icon from "./Icon";
+
+function ComparativaLanding({ colors, isMobile }) {
+  const [monto, setMonto] = useState(100);
+  const [animado, setAnimado] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setAnimado(true), 300);
+  }, []);
+
+  useEffect(() => {
+    setAnimado(false);
+    setTimeout(() => setAnimado(true), 100);
+  }, [monto]);
+
+  const servicios = [
+    { nombre: "Waster Onion", fee: 8.00, color: "#dc2626", logo: "🧅", descripcion: "Pierdes mas dinero" },
+    { nombre: "MoneySham", fee: 6.50, color: "#ea580c", logo: "🎭", descripcion: "Comisiones ocultas" },
+    { nombre: "SlowWise", fee: 4.20, color: "#ca8a04", logo: "🐢", descripcion: "Lento y caro" },
+    { nombre: "Axora", fee: 0.50, color: "#F17633", logo: "axora", descripcion: "La mejor opcion", destacado: true },
+  ];
+
+  const maxRecibe = monto - 0.50;
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.04)",
+      borderRadius: "24px",
+      padding: isMobile ? "28px 20px" : "48px",
+      border: "1px solid rgba(255,255,255,0.08)",
+      overflow: "hidden", position: "relative"
+    }}>
+      {/* Fondo decorativo */}
+      <div style={{
+        position: "absolute", top: 0, right: 0,
+        width: "400px", height: "400px",
+        background: "radial-gradient(circle, rgba(241,118,51,0.08) 0%, transparent 70%)",
+        pointerEvents: "none"
+      }} />
+
+      {/* Header */}
+      <div style={{marginBottom: "32px", position: "relative", zIndex: 1}}>
+        <div style={{
+          display: "inline-block",
+          backgroundColor: "rgba(241,118,51,0.15)",
+          color: "#F17633", padding: "4px 14px",
+          borderRadius: "20px", fontSize: "11px",
+          fontWeight: "700", letterSpacing: "1px",
+          marginBottom: "14px", textTransform: "uppercase"
+        }}>
+          📊 Comparativa en tiempo real
+        </div>
+        <h2 style={{
+          fontSize: isMobile ? "24px" : "40px",
+          fontWeight: "900", margin: "0 0 8px 0",
+          lineHeight: "1.2"
+        }}>
+          ¿Cuánto pierde tu familia<br/>
+          <span style={{
+            background: "linear-gradient(135deg, #F17633, #fbbf24)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent"
+          }}>con la competencia?</span>
+        </h2>
+        <p style={{fontSize: "15px", color: "rgba(255,255,255,0.55)", margin: 0}}>
+          Mueve el slider y ve la diferencia en tiempo real
+        </p>
+      </div>
+
+      {/* Slider */}
+      <div style={{
+        backgroundColor: "rgba(255,255,255,0.06)",
+        borderRadius: "16px", padding: "20px 24px",
+        marginBottom: "32px",
+        border: "1px solid rgba(255,255,255,0.1)"
+      }}>
+        <div style={{
+          display: "flex", alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "14px", gap: "12px", flexWrap: "wrap"
+        }}>
+          <span style={{fontSize: "14px", fontWeight: "700", color: "rgba(255,255,255,0.8)"}}>
+            Monto a enviar:
+          </span>
+          <div style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            backgroundColor: "rgba(255,255,255,0.1)",
+            border: "2px solid #F17633",
+            borderRadius: "12px", padding: "8px 16px",
+            boxShadow: "0 4px 12px rgba(241,118,51,0.2)"
+          }}>
+            <span style={{fontSize: "18px", fontWeight: "900", color: "rgba(255,255,255,0.6)"}}>$</span>
+            <input
+              type="number"
+              value={monto}
+              onChange={e => setMonto(Math.min(2000, Math.max(100, parseFloat(e.target.value) || 100)))}
+              min="10" max="2000" step="10"
+              style={{
+                width: "80px", border: "none", outline: "none",
+                fontSize: "22px", fontWeight: "900", color: "white",
+                backgroundColor: "transparent", textAlign: "right"
+              }}
+            />
+            <span style={{fontSize: "14px", fontWeight: "700", color: "rgba(255,255,255,0.6)"}}>USD</span>
+          </div>
+        </div>
+
+        <input
+          type="range" min="10" max="2000" step="10"
+          value={monto}
+          onChange={e => setMonto(parseFloat(e.target.value))}
+          style={{width: "100%", height: "8px", cursor: "pointer", accentColor: "#F17633"}}
+        />
+        <div style={{display: "flex", justifyContent: "space-between", marginTop: "8px"}}>
+          {[10, 500, 1000, 1500, 2000].map(v => (
+            <span key={v} onClick={() => setMonto(v)} style={{
+              fontSize: "11px", cursor: "pointer", fontWeight: "600",
+              color: monto === v ? "#F17633" : "rgba(255,255,255,0.4)",
+              transition: "color 0.2s"
+            }}>
+              ${v}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Barras */}
+      <div style={{display: "flex", flexDirection: "column", gap: "12px", marginBottom: "28px"}}>
+        {servicios.map((item, i) => {
+          const recibe = monto - item.fee;
+          const porcentaje = animado ? (recibe / maxRecibe) * 100 : 0;
+          const perdidaPct = Math.round((item.fee / monto) * 100 * 10) / 10;
+
+          return (
+            <div key={i} style={{
+              padding: item.destacado ? "20px" : "14px 16px",
+              borderRadius: "16px",
+              backgroundColor: item.destacado
+                ? "rgba(241,118,51,0.1)"
+                : "rgba(255,255,255,0.04)",
+              border: item.destacado
+                ? "2px solid #F17633"
+                : "1px solid rgba(255,255,255,0.08)"
+            }}>
+              <div style={{
+                display: "flex", alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "10px", flexWrap: "wrap", gap: "8px"
+              }}>
+                <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
+                  {item.logo === "axora" ? (
+                    <img src="/axoraLogo.png" alt="Axora"
+                      style={{height: "20px", objectFit: "contain",
+                        backgroundColor: "white", borderRadius: "6px", padding: "2px 6px"}} />
+                  ) : (
+                    <span style={{fontSize: "20px"}}>{item.logo}</span>
+                  )}
+                  <div>
+                    <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+                      <span style={{
+                        fontSize: "14px",
+                        fontWeight: item.destacado ? "900" : "700",
+                        color: "white"
+                      }}>
+                        {item.nombre}
+                      </span>
+                      {item.destacado && (
+                        <span style={{
+                          background: "linear-gradient(135deg, #F17633, #D96524)",
+                          color: "white", padding: "2px 10px",
+                          borderRadius: "20px", fontSize: "10px", fontWeight: "800"
+                        }}>
+                          ✓ MEJOR OPCION
+                        </span>
+                      )}
+                    </div>
+                    <div style={{fontSize: "11px", color: "rgba(255,255,255,0.45)"}}>
+                      {item.descripcion}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{textAlign: "right"}}>
+                  <div style={{
+                    fontSize: "16px", fontWeight: "900",
+                    color: item.destacado ? "#F17633" : "#f87171"
+                  }}>
+                    -{item.fee.toFixed(2)} USD
+                  </div>
+                  {!item.destacado && (
+                    <div style={{fontSize: "11px", color: "#f87171", fontWeight: "600"}}>
+                      Pierdes {perdidaPct}%
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Barra */}
+              <div style={{
+                backgroundColor: item.destacado
+                  ? "rgba(241,118,51,0.15)"
+                  : "rgba(255,255,255,0.06)",
+                borderRadius: "12px",
+                height: item.destacado ? "48px" : "36px",
+                overflow: "hidden"
+              }}>
+                <div style={{
+                  width: `${porcentaje}%`, height: "100%",
+                  background: item.destacado
+                    ? "linear-gradient(90deg, #F17633, #fbbf24)"
+                    : `linear-gradient(90deg, ${item.color}aa, ${item.color}66)`,
+                  borderRadius: "12px",
+                  display: "flex", alignItems: "center",
+                  paddingLeft: "16px",
+                  transition: "width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  boxShadow: item.destacado ? "0 4px 12px rgba(241,118,51,0.4)" : "none"
+                }}>
+                  <span style={{
+                    color: "white", fontSize: item.destacado ? "17px" : "13px",
+                    fontWeight: "900", whiteSpace: "nowrap",
+                    textShadow: "0 1px 3px rgba(0,0,0,0.3)"
+                  }}>
+                    ${recibe.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Resumen */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+        gap: "16px"
+      }}>
+        <div style={{
+          backgroundColor: "rgba(255,255,255,0.06)",
+          borderRadius: "16px", padding: "20px",
+          border: "1px solid rgba(255,255,255,0.1)"
+        }}>
+          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.55)", marginBottom: "6px"}}>
+            Ahorras vs Waster Onion:
+          </div>
+          <div style={{fontSize: "32px", fontWeight: "900", color: "white", marginBottom: "4px"}}>
+            ${(8.00 - 0.50).toFixed(2)} USD
+          </div>
+          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.5)"}}>
+            Al año: <strong style={{color: "#4ade80"}}>${((8.00 - 0.50) * 12).toFixed(2)} USD de ahorro</strong>
+          </div>
+        </div>
+
+        <div style={{
+          background: "linear-gradient(135deg, #F17633, #D96524)",
+          borderRadius: "16px", padding: "20px",
+          boxShadow: "0 8px 30px rgba(241,118,51,0.3)"
+        }}>
+          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.85)", marginBottom: "6px"}}>
+            Tu familia recibe con Axora:
+          </div>
+          <div style={{fontSize: "32px", fontWeight: "900", color: "white", marginBottom: "4px"}}>
+            ${(monto - 0.50).toFixed(2)} USD
+          </div>
+          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.85)"}}>
+            {(((monto - 0.50) / monto) * 100).toFixed(1)}% de tu dinero llega
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Landing({ onEntrar, colors }) {
   const isMobile = useIsMobile();
@@ -603,6 +874,11 @@ export default function Landing({ onEntrar, colors }) {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Comparativa */}
+        <div style={{marginTop: "40px"}}>
+          <ComparativaLanding colors={colors} isMobile={isMobile} />
         </div>
       </section>
 

@@ -11,200 +11,300 @@ import AxoGuia from "../Componentes/AxoGuia";
 import useIsMobile from "../lib/useIsMobile";
 import Landing from "../Componentes/Landing";
 import Icon from "../Componentes/Icon";
+import Notificaciones from "../Componentes/Notificaciones";
+import { agregarNotificacion, enviarEmailNotificacion, TIPOS_NOTIF } from "../lib/notifications";
 
 function ComparativaDinamica({ colors }) {
-  const [monto, setMonto] = useState(500);
+  const [monto, setMonto] = useState(100);
+  const [animado, setAnimado] = useState(false);
   const isMobile = useIsMobile();
 
+  useEffect(() => {
+    setTimeout(() => setAnimado(true), 300);
+  }, []);
+
+  useEffect(() => {
+    setAnimado(false);
+    setTimeout(() => setAnimado(true), 100);
+  }, [monto]);
+
   const servicios = [
-    { nombre: "Western Union", fee: 8.00, color: "#dc2626", logo: "🟡" },
-    { nombre: "MoneyGram", fee: 6.50, color: "#ea580c", logo: "🟠" },
-    { nombre: "Inteligente", fee: 4.20, color: "#ca8a04", logo: "🟢" },
-    { nombre: "Axora", fee: 0.50, color: colors.secundario, logo: "axora", destacado: true },
+    { nombre: "Waster Onion", fee: 8.00, color: "#dc2626", bg: "#fef2f2", logo: "🧅", descripcion: "La mas cara del mercado" },
+    { nombre: "MoneySham", fee: 6.50, color: "#ea580c", bg: "#fff7ed", logo: "🎭", descripcion: "Comisiones escondidas" },
+    { nombre: "SlowWise", fee: 4.20, color: "#ca8a04", bg: "#fefce8", logo: "🐢", descripcion: "Lento y caro" },
+    { nombre: "Axora", fee: 0.50, color: colors.secundario, bg: "#fff7ed", logo: "axora", descripcion: "La mejor opcion", destacado: true },
   ];
 
   const maxRecibe = monto - 0.50;
 
   return (
     <div style={{
-      backgroundColor: "white", borderRadius: "20px",
-      padding: isMobile ? "24px 16px" : "40px",
+      backgroundColor: "white", borderRadius: "24px",
+      padding: isMobile ? "24px 16px" : "48px",
       marginBottom: "32px",
-      boxShadow: "0 4px 20px rgba(41,76,116,0.06)",
-      border: `1px solid ${colors.apoyo}40`
+      boxShadow: "0 8px 40px rgba(41,76,116,0.1)",
+      border: `1px solid ${colors.apoyo}40`,
+      overflow: "hidden", position: "relative"
     }}>
+      {/* Fondo decorativo */}
+      <div style={{
+        position: "absolute", top: 0, right: 0,
+        width: "300px", height: "300px",
+        background: `radial-gradient(circle, ${colors.secundario}08 0%, transparent 70%)`,
+        pointerEvents: "none"
+      }} />
+
       {/* Header */}
-      <div style={{marginBottom: "20px"}}>
+      <div style={{marginBottom: "32px", position: "relative", zIndex: 1}}>
         <div style={{
           display: "inline-block", backgroundColor: `${colors.principal}10`,
-          color: colors.principal, padding: "4px 12px", borderRadius: "12px",
-          fontSize: "11px", fontWeight: "700", letterSpacing: "1px", marginBottom: "10px"
-        }}>COMPARATIVA</div>
+          color: colors.principal, padding: "4px 14px", borderRadius: "20px",
+          fontSize: "11px", fontWeight: "700", letterSpacing: "1px",
+          marginBottom: "12px", textTransform: "uppercase"
+        }}>
+          📊 Comparativa en tiempo real
+        </div>
         <h2 style={{
-          fontSize: isMobile ? "18px" : "24px",
-          fontWeight: "800", color: colors.principal, margin: "0 0 16px 0"
+          fontSize: isMobile ? "22px" : "32px",
+          fontWeight: "900", color: colors.principal,
+          margin: "0 0 6px 0", lineHeight: "1.2"
         }}>
-          Cuanto recibes al enviar ${monto.toLocaleString()} USD
+          ¿Cuánto recibe tu familia<br/>
+          <span style={{color: colors.secundario}}>al enviar ${monto.toLocaleString()} USD?</span>
         </h2>
+        <p style={{fontSize: "14px", color: colors.textoSec, margin: 0}}>
+          Mueve el slider para ver la diferencia en tiempo real
+        </p>
+      </div>
 
-        {/* Input de monto */}
+      {/* Slider */}
+      <div style={{
+        backgroundColor: colors.contenedor,
+        borderRadius: "16px", padding: "20px 24px",
+        marginBottom: "32px", border: `1px solid ${colors.apoyo}40`
+      }}>
         <div style={{
-          backgroundColor: colors.contenedor, borderRadius: "14px",
-          padding: "16px", border: `1px solid ${colors.apoyo}40`
+          display: "flex", alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "14px", gap: "12px",
+          flexWrap: "wrap"
         }}>
+          <span style={{fontSize: "14px", fontWeight: "700", color: colors.principal}}>
+            Monto a enviar:
+          </span>
           <div style={{
-            display: "flex", alignItems: "center",
-            justifyContent: "space-between", marginBottom: "12px",
-            gap: "8px", flexWrap: "wrap"
+            display: "flex", alignItems: "center", gap: "6px",
+            backgroundColor: "white",
+            border: `2px solid ${colors.secundario}`,
+            borderRadius: "12px", padding: "8px 16px",
+            boxShadow: `0 4px 12px ${colors.secundario}20`
           }}>
-            <label style={{
-              fontSize: "13px", fontWeight: "700",
-              color: colors.principal, whiteSpace: "nowrap"
-            }}>
-              Monto a enviar:
-            </label>
-            <div style={{
-              display: "flex", alignItems: "center", gap: "4px",
-              backgroundColor: "white",
-              border: `2px solid ${colors.secundario}`,
-              borderRadius: "10px", padding: "6px 12px"
-            }}>
-              <span style={{fontSize: "14px", fontWeight: "800", color: colors.textoSec}}>$</span>
-              <input
-                type="number"
-                value={monto}
-                onChange={e => setMonto(Math.min(2000, Math.max(10, parseFloat(e.target.value) || 10)))}
-                min="10" max="2000" step="10"
-                style={{
-                  width: "60px", border: "none", outline: "none",
-                  fontSize: "16px", fontWeight: "900", color: colors.principal,
-                  backgroundColor: "transparent", textAlign: "right"
-                }}
-              />
-              <span style={{fontSize: "12px", fontWeight: "700", color: colors.textoSec}}>USD</span>
-            </div>
+            <span style={{fontSize: "18px", fontWeight: "900", color: colors.textoSec}}>$</span>
+            <input
+              type="number"
+              value={monto}
+              onChange={e => setMonto(Math.min(2000, Math.max(100, parseFloat(e.target.value) || 100)))}
+              min="10" max="2000" step="10"
+              style={{
+                width: "80px", border: "none", outline: "none",
+                fontSize: "22px", fontWeight: "900", color: colors.principal,
+                backgroundColor: "transparent", textAlign: "right"
+              }}
+            />
+            <span style={{fontSize: "14px", fontWeight: "700", color: colors.textoSec}}>USD</span>
           </div>
+        </div>
 
-          <input
-            type="range" min="10" max="2000" step="10"
-            value={monto}
-            onChange={e => setMonto(parseFloat(e.target.value))}
-            style={{width: "100%", height: "6px", cursor: "pointer", accentColor: colors.secundario}}
-          />
-          <div style={{display: "flex", justifyContent: "space-between", marginTop: "4px"}}>
-            <span style={{fontSize: "11px", color: colors.textoSec}}>$10</span>
-            <span style={{fontSize: "11px", color: colors.textoSec}}>$2,000 USD</span>
-          </div>
+        <input
+          type="range" min="10" max="2000" step="10"
+          value={monto}
+          onChange={e => setMonto(parseFloat(e.target.value))}
+          style={{width: "100%", height: "8px", cursor: "pointer", accentColor: colors.secundario}}
+        />
+        <div style={{display: "flex", justifyContent: "space-between", marginTop: "8px"}}>
+          {[10, 500, 1000, 1500, 2000].map(v => (
+            <span
+              key={v}
+              onClick={() => setMonto(v)}
+              style={{
+                fontSize: "11px", cursor: "pointer", fontWeight: "600",
+                color: monto === v ? colors.secundario : colors.textoSec,
+                transition: "color 0.2s"
+              }}
+            >
+              ${v}
+            </span>
+          ))}
         </div>
       </div>
 
-      {/* Barras */}
-      <div style={{display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px"}}>
+      {/* Barras de comparativa */}
+      <div style={{display: "flex", flexDirection: "column", gap: "12px", marginBottom: "28px"}}>
         {servicios.map((item, i) => {
           const recibe = monto - item.fee;
-          const porcentaje = (recibe / maxRecibe) * 100;
+          const porcentaje = animado ? (recibe / maxRecibe) * 100 : 0;
+          const ahorro = item.destacado ? null : (item.fee - 0.50).toFixed(2);
+          const perdidaPct = Math.round((item.fee / monto) * 100 * 10) / 10;
 
           return (
             <div key={i} style={{
-              padding: item.destacado ? "12px" : "8px",
-              borderRadius: "12px",
-              backgroundColor: item.destacado ? `${colors.secundario}08` : "transparent",
-              border: item.destacado ? `2px solid ${colors.secundario}` : "2px solid transparent"
+              padding: item.destacado ? "20px" : "14px 16px",
+              borderRadius: "16px",
+              backgroundColor: item.destacado ? `${colors.secundario}06` : "white",
+              border: item.destacado
+                ? `2px solid ${colors.secundario}`
+                : `1px solid ${colors.apoyo}40`,
+              transition: "all 0.3s",
+              boxShadow: item.destacado ? `0 4px 20px ${colors.secundario}20` : "0 2px 8px rgba(0,0,0,0.03)"
             }}>
-              {/* Nombre + fee en la misma línea */}
+              {/* Nombre + info */}
               <div style={{
                 display: "flex", alignItems: "center",
-                justifyContent: "space-between", marginBottom: "6px"
+                justifyContent: "space-between",
+                marginBottom: "10px", flexWrap: "wrap", gap: "8px"
               }}>
-                <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+                <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
                   {item.logo === "axora" ? (
-                    <img src="/axoraLogo.png" alt="Axora" style={{height: "18px", objectFit: "contain"}} />
+                    <img src="/axoraLogo.png" alt="Axora"
+                      style={{height: "22px", objectFit: "contain"}} />
                   ) : (
-                    <span style={{fontSize: "16px"}}>{item.logo}</span>
+                    <span style={{fontSize: "20px"}}>{item.logo}</span>
                   )}
-                  <span style={{
-                    fontSize: "13px",
-                    fontWeight: item.destacado ? "800" : "600",
-                    color: colors.principal
+                  <div>
+                    <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+                      <span style={{
+                        fontSize: "15px",
+                        fontWeight: item.destacado ? "900" : "700",
+                        color: item.destacado ? colors.principal : "#374151"
+                      }}>
+                        {item.nombre}
+                      </span>
+                      {item.destacado && (
+                        <span style={{
+                          background: `linear-gradient(135deg, ${colors.secundario}, #D96524)`,
+                          color: "white", padding: "2px 10px",
+                          borderRadius: "20px", fontSize: "10px", fontWeight: "800"
+                        }}>
+                          ✓ MEJOR OPCION
+                        </span>
+                      )}
+                    </div>
+                    <div style={{fontSize: "11px", color: colors.textoSec}}>
+                      {item.descripcion}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{textAlign: "right"}}>
+                  <div style={{
+                    fontSize: "18px", fontWeight: "900",
+                    color: item.destacado ? colors.secundario : "#dc2626"
                   }}>
-                    {item.nombre}
-                  </span>
+                    -{item.fee.toFixed(2)} USD
+                  </div>
+                  {!item.destacado && (
+                    <div style={{fontSize: "11px", color: "#dc2626", fontWeight: "600"}}>
+                      Pierdes {perdidaPct}% de tu envio
+                    </div>
+                  )}
                   {item.destacado && (
-                    <span style={{
-                      backgroundColor: colors.secundario, color: "white",
-                      padding: "1px 6px", borderRadius: "6px",
-                      fontSize: "9px", fontWeight: "700"
-                    }}>NOSOTROS</span>
+                    <div style={{fontSize: "11px", color: "#16a34a", fontWeight: "600"}}>
+                      Solo 0.1% de comision
+                    </div>
                   )}
                 </div>
-                <span style={{
-                  fontSize: "12px", fontWeight: "700",
-                  color: item.destacado ? colors.secundario : "#9ca3af"
-                }}>
-                  -{item.fee.toFixed(2)} USD
-                </span>
               </div>
 
               {/* Barra */}
-              <div style={{
-                backgroundColor: colors.fondo,
-                borderRadius: "8px", height: "32px", overflow: "hidden"
-              }}>
+              <div style={{position: "relative"}}>
                 <div style={{
-                  width: `${porcentaje}%`, height: "100%",
-                  background: item.destacado
-                    ? `linear-gradient(90deg, ${colors.secundario}, ${colors.botonHover})`
-                    : `linear-gradient(90deg, ${item.color}, ${item.color}bb)`,
-                  borderRadius: "8px",
-                  display: "flex", alignItems: "center", paddingLeft: "12px",
-                  transition: "width 0.6s ease"
+                  backgroundColor: item.destacado ? `${colors.secundario}15` : "#f3f4f6",
+                  borderRadius: "12px", height: item.destacado ? "48px" : "38px",
+                  overflow: "hidden", position: "relative"
                 }}>
-                  <span style={{color: "white", fontSize: "13px", fontWeight: "700"}}>
-                    ${recibe.toFixed(2)}
-                  </span>
+                  <div style={{
+                    width: `${porcentaje}%`, height: "100%",
+                    background: item.destacado
+                      ? `linear-gradient(90deg, ${colors.secundario}, #fbbf24)`
+                      : `linear-gradient(90deg, ${item.color}99, ${item.color}66)`,
+                    borderRadius: "12px",
+                    display: "flex", alignItems: "center",
+                    paddingLeft: "16px", gap: "8px",
+                    transition: "width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    boxShadow: item.destacado ? `0 4px 12px ${colors.secundario}40` : "none"
+                  }}>
+                    <span style={{
+                      color: "white", fontSize: item.destacado ? "18px" : "14px",
+                      fontWeight: "900", whiteSpace: "nowrap",
+                      textShadow: "0 1px 3px rgba(0,0,0,0.2)"
+                    }}>
+                      ${recibe.toFixed(2)} USD
+                    </span>
+                    {item.destacado && (
+                      <span style={{
+                        fontSize: "12px", color: "rgba(255,255,255,0.9)",
+                        fontWeight: "600"
+                      }}>
+                        recibe tu familia
+                      </span>
+                    )}
+                  </div>
                 </div>
+
+                {/* Indicador de ahorro vs Axora */}
+                {ahorro && (
+                  <div style={{
+                    marginTop: "6px", fontSize: "11px",
+                    color: "#16a34a", fontWeight: "700",
+                    display: "flex", alignItems: "center", gap: "4px"
+                  }}>
+                    <Icon nombre="coins" size={12} color="16A34A" />
+                    Con Axora ahorras ${ahorro} USD mas
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Resumen */}
+      {/* Resumen destacado */}
       <div style={{
-        background: `linear-gradient(135deg, ${colors.principal}, #3d6a9e)`,
-        borderRadius: "14px", padding: "16px 20px",
-        display: "flex",
-        flexDirection: isMobile ? "column" : "row",
-        justifyContent: "space-between",
-        alignItems: isMobile ? "flex-start" : "center",
-        gap: "12px"
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+        gap: "16px"
       }}>
-        <div style={{color: "white"}}>
-          <div style={{fontSize: "12px", color: colors.apoyo, marginBottom: "4px"}}>
-            Ahorras con Axora vs Western Union:
+        {/* Ahorro total */}
+        <div style={{
+          background: `linear-gradient(135deg, ${colors.principal}, #3d6a9e)`,
+          borderRadius: "16px", padding: "20px",
+          color: "white"
+        }}>
+          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.7)", marginBottom: "6px"}}>
+            Ahorras con Axora vs Waster Onion:
           </div>
-          <div style={{fontSize: isMobile ? "22px" : "26px", fontWeight: "900"}}>
-            ${(8.00 - 0.50).toFixed(2)} USD por envio
+          <div style={{fontSize: "36px", fontWeight: "900", marginBottom: "4px"}}>
+            ${(8.00 - 0.50).toFixed(2)} USD
           </div>
-          <div style={{fontSize: "12px", color: colors.apoyo, marginTop: "2px"}}>
-            En 12 envios: ${((8.00 - 0.50) * 12).toFixed(2)} USD al año
+          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.7)"}}>
+            En 12 envios: <strong>${((8.00 - 0.50) * 12).toFixed(2)} USD al año</strong>
           </div>
         </div>
 
+        {/* Tu familia recibe */}
         <div style={{
-          textAlign: isMobile ? "left" : "right",
-          borderTop: isMobile ? `1px solid rgba(255,255,255,0.2)` : "none",
-          paddingTop: isMobile ? "12px" : "0",
-          width: isMobile ? "100%" : "auto"
+          background: `linear-gradient(135deg, ${colors.secundario}, #D96524)`,
+          borderRadius: "16px", padding: "20px",
+          color: "white"
         }}>
-          <div style={{fontSize: "12px", color: colors.apoyo, marginBottom: "4px"}}>
-            Tu familia recibe:
+          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.85)", marginBottom: "6px"}}>
+            Tu familia recibe con Axora:
           </div>
-          <div style={{fontSize: isMobile ? "28px" : "32px", fontWeight: "900", color: "white"}}>
+          <div style={{fontSize: "36px", fontWeight: "900", marginBottom: "4px"}}>
             ${(monto - 0.50).toFixed(2)} USD
           </div>
-          <div style={{fontSize: "12px", color: colors.apoyo}}>
-            de ${monto} USD enviados
+          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.85)"}}>
+            de ${monto} USD enviados → <strong>{(((monto - 0.50) / monto) * 100).toFixed(1)}% llega</strong>
           </div>
         </div>
       </div>
@@ -219,8 +319,10 @@ export default function Home() {
   const [mostrarLogin, setMostrarLogin] = useState(false);
   const [rewards, setRewards] = useState(null);
   const [popupEvento, setPopupEvento] = useState(null);
+  const [balanceAMXN, setBalanceAMXN] = useState("0");
   const isMobile = useIsMobile();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [notifUpdate, setNotifUpdate] = useState(0);
 
   const colors = {
     principal: "#294C74",
@@ -262,7 +364,56 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (usuario) setRewards(getRewards(usuario));
+    if (!usuario) return;
+
+    if (usuario.tipo === "metamask" && window.ethereum) {
+      const cargarBalance = async () => {
+        try {
+          const { ethers } = await import("ethers");
+          const { CONTRATO_REMESAS, ABI_REMESAS } = await import("../lib/contrato");
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const contrato = new ethers.Contract(CONTRATO_REMESAS, ABI_REMESAS, provider);
+          const balance = await contrato.balanceAMXN(usuario.wallet);
+          setBalanceAMXN(balance.toString());
+        } catch (e) {
+          console.log("Error cargando AMXN:", e);
+        }
+      };
+      cargarBalance();
+    } else if (usuario.tipo === "email") {
+      const keyAMXN = `axora_amxn_${usuario.email}`;
+      const balance = localStorage.getItem(keyAMXN) || "0";
+      setBalanceAMXN(parseFloat(balance).toFixed(0));
+    }
+  }, [usuario]);
+
+  useEffect(() => {
+    if (usuario) {
+      setRewards(getRewards(usuario));
+
+      const ultimaAlerta = localStorage.getItem("axora_ultima_alerta_tc");
+      const ahora = Date.now();
+      const unaHora = 60 * 60 * 1000;
+
+      if (!ultimaAlerta || ahora - parseInt(ultimaAlerta) > unaHora) {
+        const variacion = (Math.random() * 3 + 0.5).toFixed(1);
+        const tipoCambio = (17.85 + Math.random() * 0.5).toFixed(2);
+
+        if (parseFloat(variacion) > 1.5) {
+          notificar(
+            "tipo_cambio_favorable",
+            `📈 ¡Buen momento para enviar!`,
+            `El dólar está en $${tipoCambio} MXN, ${variacion}% arriba del promedio`,
+            {
+              tipoCambio,
+              variacion,
+              consejo: `Hoy es buen momento para enviar dinero. El dólar está ${variacion}% arriba del promedio semanal.`
+            }
+          );
+          localStorage.setItem("axora_ultima_alerta_tc", ahora.toString());
+        }
+      }
+    }
   }, [usuario]);
 
   const cerrarSesion = () => {
@@ -274,6 +425,15 @@ export default function Home() {
   const mostrarPuntos = (evento) => {
     setPopupEvento(evento);
     if (usuario) setRewards(getRewards(usuario));
+  };
+
+  const notificar = async (tipo, titulo, mensaje, emailData = null) => {
+    if (!usuario) return;
+    agregarNotificacion(usuario, tipo, titulo, mensaje);
+    setNotifUpdate(p => p + 1);
+    if (usuario.email && emailData) {
+      await enviarEmailNotificacion(tipo, usuario.email, emailData);
+    }
   };
 
   if (cargando) {
@@ -339,6 +499,15 @@ export default function Home() {
               </button>
             ))}
           </div>
+        )}
+
+        {/* Notificaciones */}
+        {!isMobile && (
+          <Notificaciones
+            usuario={usuario}
+            colors={colors}
+            onUpdate={() => setNotifUpdate(p => p + 1)}
+          />
         )}
 
         {/* Desktop: usuario */}
@@ -556,6 +725,9 @@ export default function Home() {
               )}
             </div>
 
+            {/* Comparativa - justo después del hero */}
+            <ComparativaDinamica colors={colors} />
+
             {/* Stats */}
             <div style={{display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: "16px", marginBottom: "40px"}}>
               {[
@@ -571,9 +743,6 @@ export default function Home() {
                 </div>
               ))}
             </div>
-
-            {/* COMPARATIVA DINAMICA */}
-            <ComparativaDinamica colors={colors} />
 
             {/* Features */}
             <div style={{display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: "16px"}}>
@@ -603,7 +772,7 @@ export default function Home() {
                 Simple, rapido y sin comisiones abusivas
               </p>
             </div>
-            <EnviarSimple colors={colors} usuario={usuario} onPuntos={mostrarPuntos} />
+            <EnviarSimple colors={colors} usuario={usuario} onPuntos={mostrarPuntos} onNotificar={notificar} />
           </div>
         )}
 

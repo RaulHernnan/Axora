@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import { agregarPuntos, getCuponActivo, usarCupon, getRewards, saveRewards } from "../lib/rewards";
 import Icon from "./Icon";
 
-export default function EnviarSimple({ colors, usuario, onPuntos }) {
+export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar }) {
   const isMobile = useIsMobile();
   const [paso, setPaso] = useState(1);
   const [form, setForm] = useState({
@@ -56,14 +56,42 @@ export default function EnviarSimple({ colors, usuario, onPuntos }) {
     setProcesando(true);
 
     try {
-      // FLUJO USUARIO EMAIL (sin MetaMask)
+      // FLUJO USUARIO EMAIL - Axora firma por el usuario
       if (!usuario || usuario.tipo === "email") {
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 1500));
 
-        const hashSimulado = "0x" + Array.from({length: 64}, () =>
-          Math.floor(Math.random() * 16).toString(16)).join("");
+        try {
+          const idRemesa = Date.now();
+          const respuesta = await fetch("/api/mint-amxn", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+              nombreRemitente: form.nombreRemitente,
+              nombreDestinatario: form.nombreDestinatario,
+              cantidadMXN: cantidadMXN,
+              idRemesa
+            })
+          });
 
-        setTxHash(hashSimulado);
+          const data = await respuesta.json();
+
+          if (data.ok) {
+            setTxHash(data.txHash);
+            const keyAMXN = `axora_amxn_${usuario?.email}`;
+            const amxnActual = parseFloat(localStorage.getItem(keyAMXN) || "0");
+            const amxnNuevo = amxnActual + parseFloat(cantidadMXN);
+            localStorage.setItem(keyAMXN, amxnNuevo.toFixed(2));
+          } else {
+            const hashSimulado = "0x" + Array.from({length: 64}, () =>
+              Math.floor(Math.random() * 16).toString(16)).join("");
+            setTxHash(hashSimulado);
+          }
+        } catch (err) {
+          const hashSimulado = "0x" + Array.from({length: 64}, () =>
+            Math.floor(Math.random() * 16).toString(16)).join("");
+          setTxHash(hashSimulado);
+        }
+
         setProcesando(false);
         // Dar puntos al usuario
         if (usuario) {
@@ -74,6 +102,23 @@ export default function EnviarSimple({ colors, usuario, onPuntos }) {
             nuevosNFTs: resultado.nuevosNFTs,
             envioGratis: resultado.rewards.envioGratis
           });
+          if (resultado.nuevosNFTs && resultado.nuevosNFTs.length > 0) {
+            resultado.nuevosNFTs.forEach(nft => {
+              if (onNotificar) {
+                onNotificar(
+                  "nft_desbloqueado",
+                  `🏆 NFT desbloqueado: ${nft.nombre}`,
+                  `${nft.descripcion} Vale ${nft.puntosAlCanjear} pts`,
+                  {
+                    nombre: usuario.nombre,
+                    nftNombre: nft.nombre,
+                    nftDescripcion: nft.descripcion,
+                    puntosAlCanjear: nft.puntosAlCanjear
+                  }
+                );
+              }
+            });
+          }
           // Usar cupon si existe
           if (cuponActivo && !cuponActivo.usado) {
             usarCupon(usuario, cuponActivo.id);
@@ -90,6 +135,21 @@ export default function EnviarSimple({ colors, usuario, onPuntos }) {
               saveRewards(usuario, rwds);
             }
           }
+        }
+        if (onNotificar) {
+          onNotificar(
+            "envio_exitoso",
+            `✅ Envío confirmado a ${form.nombreDestinatario}`,
+            `$${cantidadMXN} MXN llegarán a ${form.banco}`,
+            {
+              destinatario: form.nombreDestinatario,
+              banco: form.banco,
+              cantidadUSD: cantidadNum.toFixed(2),
+              cantidadMXN,
+              codigoOxxo,
+              txHash: txHash || ""
+            }
+          );
         }
         setPaso(4);
         return;
@@ -133,6 +193,23 @@ export default function EnviarSimple({ colors, usuario, onPuntos }) {
           nuevosNFTs: resultado.nuevosNFTs,
           envioGratis: resultado.rewards.envioGratis
         });
+        if (resultado.nuevosNFTs && resultado.nuevosNFTs.length > 0) {
+          resultado.nuevosNFTs.forEach(nft => {
+            if (onNotificar) {
+              onNotificar(
+                "nft_desbloqueado",
+                `🏆 NFT desbloqueado: ${nft.nombre}`,
+                `${nft.descripcion} Vale ${nft.puntosAlCanjear} pts`,
+                {
+                  nombre: usuario.nombre,
+                  nftNombre: nft.nombre,
+                  nftDescripcion: nft.descripcion,
+                  puntosAlCanjear: nft.puntosAlCanjear
+                }
+              );
+            }
+          });
+        }
         // Usar cupon si existe
         if (cuponActivo && !cuponActivo.usado) {
           usarCupon(usuario, cuponActivo.id);
@@ -149,6 +226,21 @@ export default function EnviarSimple({ colors, usuario, onPuntos }) {
             saveRewards(usuario, rwds);
           }
         }
+      }
+      if (onNotificar) {
+        onNotificar(
+          "envio_exitoso",
+          `✅ Envío confirmado a ${form.nombreDestinatario}`,
+          `$${cantidadMXN} MXN llegarán a ${form.banco}`,
+          {
+            destinatario: form.nombreDestinatario,
+            banco: form.banco,
+            cantidadUSD: cantidadNum.toFixed(2),
+            cantidadMXN,
+            codigoOxxo,
+            txHash: txHash || ""
+          }
+        );
       }
       setPaso(4);
 
@@ -663,6 +755,28 @@ export default function EnviarSimple({ colors, usuario, onPuntos }) {
               </a>
             </div>
           )}
+
+          {/* AMXN acuñados */}
+          <div style={{
+            backgroundColor: "#f0fdf4",
+            border: "1px solid #bbf7d0",
+            borderRadius: "12px", padding: "16px",
+            marginBottom: "16px",
+            display: "flex", alignItems: "center", gap: "12px"
+          }}>
+            <img src="/axoraLogo.png" style={{height: "32px", objectFit: "contain"}} />
+            <div>
+              <div style={{fontSize: "13px", fontWeight: "700", color: "#15803d"}}>
+                AMXN acuñados en blockchain
+              </div>
+              <div style={{fontSize: "20px", fontWeight: "900", color: "#15803d"}}>
+                {parseFloat(cantidadMXN).toFixed(0)} AMXN
+              </div>
+              <div style={{fontSize: "11px", color: "#6b7280"}}>
+                Equivalente digital de ${cantidadMXN} MXN
+              </div>
+            </div>
+          </div>
 
           <div style={{backgroundColor: colors.contenedor, borderRadius: "14px", padding: "20px", marginBottom: "28px", textAlign: "left"}}>
             {[

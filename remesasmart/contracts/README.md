@@ -1,17 +1,16 @@
 # Axora - Smart Contracts
 
-## Contratos desplegados
+## ✅ Contratos Verificados en Etherscan Sepolia
 
-### AxoraRemesas.sol
-- **Red:** Ethereum Sepolia Testnet
-- **Dirección:** 0xb1a7De81da0F8DB5b82Ef330c2858936E208A85b
-- **Verificar:** https://sepolia.etherscan.io/address/0xb1a7De81da0F8DB5b82Ef330c2858936E208A85b
-
-### AxoraPagos.sol
-- **Red:** Ethereum Sepolia Testnet
-- **Estado:** Pendiente de deploy (requiere ETH de testnet)
+| Contrato | Dirección | Etherscan |
+|----------|-----------|-----------|
+| AxoraMXN (AMXN) | 0xC7a1d6ec0dD17273517d7a30d8c1a3dC284e4293 | [Ver código](https://sepolia.etherscan.io/address/0xC7a1d6ec0dD17273517d7a30d8c1a3dC284e4293#code) |
+| AxoraRemesas | 0xaF502b5f2bc0209658A3DeB75ce442Fc1C9338B1 | [Ver código](https://sepolia.etherscan.io/address/0xaF502b5f2bc0209658A3DeB75ce442Fc1C9338B1#code) |
 
 ## Descripción
+
+### AxoraMXN (ERC20)
+Token ERC20 que representa pesos mexicanos digitales dentro del ecosistema Axora.
 
 ### AxoraRemesas
 Contrato principal para registrar remesas internacionales de forma inmutable.
@@ -24,16 +23,6 @@ Contrato principal para registrar remesas internacionales de forma inmutable.
 - `verRemesa(id)` - Ver detalle de una remesa
 - `estadisticas()` - Ver totales globales
 
-### AxoraPagos
-Contrato para pagos automáticos recurrentes (CFE, agua, gas, internet).
-
-**Funciones principales:**
-- `configurarPago()` - Configurar nuevo pago automático
-- `ejecutarPago()` - Ejecutar pago mensual (solo owner)
-- `cancelarPago()` - Cancelar pago automático
-- `togglePago()` - Pausar o reactivar pago
-- `misPagos()` - Ver pagos del usuario
-
 ## Cómo compilar y deployar
 
 1. Abrir https://remix.ethereum.org
@@ -45,5 +34,5 @@ Contrato para pagos automáticos recurrentes (CFE, agua, gas, internet).
 ## Tecnologías
 - Solidity 0.8.19
 - Ethereum Sepolia Testnet
-- OpenZeppelin patterns
+- OpenZeppelin ERC20
 - Integrado con Next.js frontend
