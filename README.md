@@ -4,6 +4,16 @@
 
 ![Axora](remesasmart/public/axoraLogo.png)
 
+## 📑 Contenido
+
+- [¿Qué es Axora?](#qué-es-axora)
+- [Características](#características)
+- [Comparativa de costos](#comparativa-de-costos)
+- [Smart Contracts](#smart-contracts)
+- [Tech Stack](#tech-stack)
+- [Instalación](#instalación)
+- [Equipo](#equipo)
+
 ## ¿Qué es Axora?
 
 Axora es una plataforma que permite enviar dinero a México de forma
