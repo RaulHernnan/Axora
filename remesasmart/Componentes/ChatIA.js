@@ -1,7 +1,10 @@
 'use client';
 import { useState } from 'react';
+import useIsMobile from "../lib/useIsMobile";
+import { agregarPuntos } from "../lib/rewards";
 
-export default function ChatIA() {
+export default function ChatIA({ usuario, onPuntos }) {
+  const isMobile = useIsMobile();
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -39,6 +42,17 @@ export default function ChatIA() {
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
 
+      // Dar puntos por usar Axo
+      if (usuario) {
+        const resultado = agregarPuntos(usuario, "CONSULTA_AXO");
+        if (onPuntos) onPuntos({
+          mensaje: resultado.mensaje,
+          totalPuntos: resultado.rewards.puntos,
+          nuevosNFTs: resultado.nuevosNFTs,
+          envioGratis: resultado.rewards.envioGratis
+        });
+      }
+
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
@@ -75,40 +89,34 @@ export default function ChatIA() {
       {/* Header */}
       <div style={{
         background: `linear-gradient(135deg, ${colors.principal} 0%, #3d6a9e 100%)`,
-        padding: "24px 28px",
+        padding: "20px 24px",
         display: "flex",
         alignItems: "center",
-        gap: "16px"
+        gap: "12px",
+        flexWrap: "wrap"
       }}>
-      <div style={{
-        width: "56px",
-        height: "56px",
-        borderRadius: "16px",
-        overflow: "hidden",
-        border: "2px solid rgba(255,255,255,0.35)",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-        flexShrink: 0
-      }}>
-        <img src="/axo.png" alt="Axo" style={{width: "100%", height: "100%", objectFit: "cover"}} />
-      </div>
-        <div style={{flex: 1}}>
-          <h3 style={{color: "white", margin: 0, fontSize: "20px", fontWeight: "800", letterSpacing: "-0.3px"}}>
+        <div style={{
+          width: "52px", height: "52px", borderRadius: "16px",
+          overflow: "hidden", border: "2px solid rgba(255,255,255,0.35)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)", flexShrink: 0
+        }}>
+          <img src="/axo.png" alt="Axo"
+            style={{width: "100%", height: "100%", objectFit: "cover"}} />
+        </div>
+        <div style={{flex: 1, minWidth: "120px"}}>
+          <h3 style={{color: "white", margin: 0, fontSize: "18px", fontWeight: "800"}}>
             Axo - Asistente IA
           </h3>
-          <p style={{color: "rgba(255,255,255,0.7)", margin: 0, fontSize: "13px", fontWeight: "500"}}>
+          <p style={{color: "rgba(255,255,255,0.7)", margin: 0, fontSize: "13px"}}>
             Tu ajolote financiero, disponible 24/7
           </p>
         </div>
         <div style={{
           backgroundColor: "#F17633",
-          borderRadius: "20px",
-          padding: "6px 14px",
-          fontSize: "12px",
-          color: "white",
-          fontWeight: "700",
-          display: "flex",
-          alignItems: "center",
-          gap: "6px"
+          borderRadius: "20px", padding: "6px 14px",
+          fontSize: "12px", color: "white", fontWeight: "700",
+          display: "flex", alignItems: "center", gap: "6px",
+          flexShrink: 0
         }}>
           <div style={{width: "6px", height: "6px", backgroundColor: "white", borderRadius: "50%"}}></div>
           En linea
@@ -117,30 +125,29 @@ export default function ChatIA() {
 
       {/* Preguntas rapidas */}
       <div style={{
-        padding: "16px 28px",
+        padding: isMobile ? "12px 16px" : "16px 28px",
         backgroundColor: colors.contenedor,
         borderBottom: `1px solid ${colors.apoyo}40`
       }}>
-        <p style={{fontSize: "11px", color: colors.principal, fontWeight: "700", margin: "0 0 10px 0", letterSpacing: "0.5px", textTransform: "uppercase"}}>
+        <p style={{fontSize: "11px", color: colors.principal, fontWeight: "700",
+          margin: "0 0 8px 0", letterSpacing: "0.5px", textTransform: "uppercase"}}>
           Preguntale a Axo:
         </p>
-        <div style={{display: "flex", gap: "8px", flexWrap: "wrap"}}>
+        <div style={{
+          display: "flex", gap: "6px",
+          flexDirection: isMobile ? "column" : "row",
+          flexWrap: "wrap"
+        }}>
           {preguntasRapidas.map((pregunta, i) => (
-            <button
-              key={i}
-              onClick={() => setInput(pregunta)}
-              style={{
-                backgroundColor: "white",
-                border: `1px solid ${colors.apoyo}`,
-                borderRadius: "20px",
-                padding: "7px 16px",
-                fontSize: "13px",
-                color: colors.principal,
-                cursor: "pointer",
-                fontWeight: "600",
-                transition: "all 0.2s"
-              }}
-            >
+            <button key={i} onClick={() => setInput(pregunta)} style={{
+              backgroundColor: "white",
+              border: `1px solid ${colors.apoyo}`,
+              borderRadius: isMobile ? "10px" : "20px",
+              padding: isMobile ? "10px 14px" : "7px 16px",
+              fontSize: "13px", color: colors.principal,
+              cursor: "pointer", fontWeight: "600",
+              textAlign: isMobile ? "left" : "center"
+            }}>
               {pregunta}
             </button>
           ))}
@@ -149,12 +156,12 @@ export default function ChatIA() {
 
       {/* Mensajes */}
       <div style={{
-        height: "380px",
+        height: isMobile ? "300px" : "380px",
         overflowY: "auto",
-        padding: "24px 28px",
+        padding: isMobile ? "16px" : "24px 28px",
         display: "flex",
         flexDirection: "column",
-        gap: "20px",
+        gap: isMobile ? "12px" : "20px",
         backgroundColor: colors.contenedor
       }}>
         {messages.map((msg, i) => (
@@ -181,18 +188,15 @@ export default function ChatIA() {
             </div>
             )}
             <div style={{
-              maxWidth: "72%",
-              padding: "14px 18px",
-              borderRadius: msg.role === 'user' 
-                ? "18px 18px 4px 18px" 
-                : "18px 18px 18px 4px",
+              maxWidth: "80%",
+              padding: isMobile ? "10px 14px" : "14px 18px",
+              borderRadius: msg.role === 'user' ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
               backgroundColor: msg.role === 'user' ? colors.secundario : "white",
               color: msg.role === 'user' ? "white" : colors.principal,
-              fontSize: "14px",
-              lineHeight: "1.6",
-              fontWeight: "500",
-              boxShadow: msg.role === 'user' 
-                ? "0 4px 12px rgba(241,118,51,0.2)" 
+              fontSize: isMobile ? "13px" : "14px",
+              lineHeight: "1.6", fontWeight: "500",
+              boxShadow: msg.role === 'user'
+                ? "0 4px 12px rgba(241,118,51,0.2)"
                 : "0 2px 8px rgba(41,76,116,0.06)",
               border: msg.role === 'user' ? "none" : `1px solid ${colors.apoyo}40`
             }}>

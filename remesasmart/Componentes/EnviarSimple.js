@@ -1,10 +1,14 @@
 "use client";
 import { useState } from "react";
+import useIsMobile from "../lib/useIsMobile";
 import { ethers } from "ethers";
 import { CONTRATO_REMESAS, ABI_REMESAS } from "../lib/contrato";
 import { jsPDF } from "jspdf";
+import { agregarPuntos, getCuponActivo, usarCupon, getRewards, saveRewards } from "../lib/rewards";
+import Icon from "./Icon";
 
-export default function EnviarSimple({ colors }) {
+export default function EnviarSimple({ colors, usuario, onPuntos }) {
+  const isMobile = useIsMobile();
   const [paso, setPaso] = useState(1);
   const [form, setForm] = useState({
     nombreRemitente: "",
@@ -19,8 +23,10 @@ export default function EnviarSimple({ colors }) {
   const [txHash, setTxHash] = useState("");
   const [error, setError] = useState("");
 
-  const tipoCambio = 17.85;
-  const fee = 0.50;
+  const cuponActivo = usuario ? getCuponActivo(usuario) : null;
+  const fee = cuponActivo?.tipo === "gratis" ? 0 :
+              cuponActivo?.tipo === "descuento" ? 0.25 : 0.50;
+  const tipoCambio = cuponActivo?.tipo === "vip" ? 18.20 : 17.85;
   const cantidadNum = parseFloat(form.cantidad) || 0;
   const cantidadMXN = ((cantidadNum - fee) * tipoCambio).toFixed(2);
   const ahorroVsWU = (8.00 - fee).toFixed(2);
@@ -36,12 +42,20 @@ export default function EnviarSimple({ colors }) {
 
   const registrarEnBlockchain = async () => {
     setError("");
+
+    // Validar limite del contrato
+    if (cantidadNum > 2000) {
+      setError("El monto maximo por envio es $2,000 USD. Para montos mayores contacta a soporte.");
+      return;
+    }
+    if (cantidadNum < 10) {
+      setError("El monto minimo por envio es $10 USD.");
+      return;
+    }
+
     setProcesando(true);
 
     try {
-      const usuarioGuardado = localStorage.getItem("axora_usuario");
-      const usuario = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
-
       // FLUJO USUARIO EMAIL (sin MetaMask)
       if (!usuario || usuario.tipo === "email") {
         await new Promise(r => setTimeout(r, 2000));
@@ -51,6 +65,32 @@ export default function EnviarSimple({ colors }) {
 
         setTxHash(hashSimulado);
         setProcesando(false);
+        // Dar puntos al usuario
+        if (usuario) {
+          const resultado = agregarPuntos(usuario, "ENVIO", cantidadNum);
+          if (onPuntos) onPuntos({
+            mensaje: resultado.mensaje,
+            totalPuntos: resultado.rewards.puntos,
+            nuevosNFTs: resultado.nuevosNFTs,
+            envioGratis: resultado.rewards.envioGratis
+          });
+          // Usar cupon si existe
+          if (cuponActivo && !cuponActivo.usado) {
+            usarCupon(usuario, cuponActivo.id);
+            if (cuponActivo.tipo === "cashback") {
+              const rwds = getRewards(usuario);
+              rwds.puntos += Math.floor(cuponActivo.valor * 10);
+              rwds.historial.unshift({
+                accion: "CASHBACK",
+                puntos: Math.floor(cuponActivo.valor * 10),
+                mensaje: `Cashback de $${cuponActivo.valor} USD aplicado`,
+                fecha: new Date().toLocaleDateString("es-MX"),
+                timestamp: Date.now()
+              });
+              saveRewards(usuario, rwds);
+            }
+          }
+        }
         setPaso(4);
         return;
       }
@@ -84,10 +124,53 @@ export default function EnviarSimple({ colors }) {
       const receipt = await tx.wait();
       setTxHash(receipt.hash);
       setProcesando(false);
+      // Dar puntos al usuario
+      if (usuario) {
+        const resultado = agregarPuntos(usuario, "ENVIO", cantidadNum);
+        if (onPuntos) onPuntos({
+          mensaje: resultado.mensaje,
+          totalPuntos: resultado.rewards.puntos,
+          nuevosNFTs: resultado.nuevosNFTs,
+          envioGratis: resultado.rewards.envioGratis
+        });
+        // Usar cupon si existe
+        if (cuponActivo && !cuponActivo.usado) {
+          usarCupon(usuario, cuponActivo.id);
+          if (cuponActivo.tipo === "cashback") {
+            const rwds = getRewards(usuario);
+            rwds.puntos += Math.floor(cuponActivo.valor * 10);
+            rwds.historial.unshift({
+              accion: "CASHBACK",
+              puntos: Math.floor(cuponActivo.valor * 10),
+              mensaje: `Cashback de $${cuponActivo.valor} USD aplicado`,
+              fecha: new Date().toLocaleDateString("es-MX"),
+              timestamp: Date.now()
+            });
+            saveRewards(usuario, rwds);
+          }
+        }
+      }
       setPaso(4);
 
     } catch (err) {
-      setError(err.message || "Error al procesar");
+      // Traducir errores tecnicos a mensajes amigables
+      let mensajeError = "Ocurrio un error. Por favor intenta de nuevo.";
+
+      if (err.message?.includes("Maximo $2000")) {
+        mensajeError = "El monto maximo permitido es $2,000 USD por envio.";
+      } else if (err.message?.includes("Minimo $10")) {
+        mensajeError = "El monto minimo es $10 USD por envio.";
+      } else if (err.message?.includes("CLABE")) {
+        mensajeError = "La CLABE ingresada no es valida. Verifica los 18 digitos.";
+      } else if (err.message?.includes("user rejected")) {
+        mensajeError = "Cancelaste la transaccion en MetaMask.";
+      } else if (err.message?.includes("insufficient funds")) {
+        mensajeError = "No tienes suficiente saldo en tu wallet para pagar el gas.";
+      } else if (err.message?.includes("network")) {
+        mensajeError = "Error de red. Verifica tu conexion a internet.";
+      }
+
+      setError(mensajeError);
       setProcesando(false);
     }
   };
@@ -156,11 +239,12 @@ export default function EnviarSimple({ colors }) {
         ["CLABE:", `****${form.clabe.slice(-4)}`],
         ["Cantidad enviada:", `$${cantidadNum.toFixed(2)} USD`],
         ["Cantidad recibida:", `$${cantidadMXN} MXN`],
-        ["Comision Axora:", "$0.50 USD"],
-        ["Ahorro vs Western Union:", `$${ahorroVsWU} USD`],
+        ["Comision Axora:", fee === 0 ? "GRATIS (cupon aplicado)" : `$${fee.toFixed(2)} USD`],
+        ["Ahorro vs Western Union:", `$${(8.00 - fee).toFixed(2)} USD`],
+        cuponActivo && !cuponActivo.usado ? ["Cupon aplicado:", cuponActivo.nombre] : null,
         ["Codigo Oxxo:", codigoOxxo],
         ["Estado:", "Registrado en blockchain"],
-      ];
+      ].filter(Boolean);
 
       datos.forEach(([label, valor], i) => {
         const y = 96 + i * 10;
@@ -259,38 +343,46 @@ export default function EnviarSimple({ colors }) {
 
       {/* INDICADOR DE PASOS */}
       <div style={{
-        display: "flex",
-        alignItems: "center",
+        display: "flex", alignItems: "center",
         justifyContent: "center",
-        marginBottom: "40px"
+        marginBottom: "32px",
+        overflowX: "hidden",
+        padding: "0 8px"
       }}>
         {[
-          {num: 1, label: "Tu info"},
-          {num: 2, label: "Destinatario"},
-          {num: 3, label: "Confirmar"},
+          {num: 1, label: isMobile ? "Info" : "Tu info"},
+          {num: 2, label: isMobile ? "Destino" : "Destinatario"},
+          {num: 3, label: isMobile ? "Pagar" : "Confirmar"},
           {num: 4, label: "Listo"}
         ].map((p, i) => (
           <div key={p.num} style={{display: "flex", alignItems: "center"}}>
-            <div style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "6px"}}>
+            <div style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "4px"}}>
               <div style={{
-                width: "40px", height: "40px", borderRadius: "50%",
+                width: isMobile ? "32px" : "40px",
+                height: isMobile ? "32px" : "40px",
+                borderRadius: "50%",
                 backgroundColor: paso >= p.num ? colors.secundario : colors.apoyo,
                 color: "white", display: "flex", alignItems: "center",
-                justifyContent: "center", fontSize: "16px", fontWeight: "800"
+                justifyContent: "center",
+                fontSize: isMobile ? "13px" : "16px",
+                fontWeight: "800"
               }}>
                 {paso > p.num ? "✓" : p.num}
               </div>
               <div style={{
-                fontSize: "11px", fontWeight: "600",
+                fontSize: isMobile ? "10px" : "11px",
+                fontWeight: "600",
                 color: paso >= p.num ? colors.secundario : colors.textoSec,
                 whiteSpace: "nowrap"
               }}>{p.label}</div>
             </div>
             {i < 3 && (
               <div style={{
-                width: "80px", height: "3px",
+                width: isMobile ? "30px" : "80px",
+                height: "3px",
                 backgroundColor: paso > p.num ? colors.secundario : colors.apoyo,
-                margin: "0 4px", marginBottom: "22px"
+                margin: "0 2px",
+                marginBottom: "20px"
               }} />
             )}
           </div>
@@ -299,7 +391,7 @@ export default function EnviarSimple({ colors }) {
 
       {/* PASO 1: INFO DEL REMITENTE */}
       {paso === 1 && (
-        <div style={{backgroundColor: "white", borderRadius: "20px", padding: "40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `1px solid ${colors.apoyo}40`}}>
+        <div style={{backgroundColor: "white", borderRadius: "20px", padding: isMobile ? "24px 20px" : "40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `1px solid ${colors.apoyo}40`}}>
           <div style={{textAlign: "center", marginBottom: "32px"}}>
             <div style={{fontSize: "48px", marginBottom: "12px"}}>👋</div>
             <h2 style={{fontSize: "24px", fontWeight: "800", color: colors.principal, margin: "0 0 8px 0"}}>
@@ -339,16 +431,25 @@ export default function EnviarSimple({ colors }) {
                   <span style={{fontSize: "18px", fontWeight: "800", color: colors.principal}}>${cantidadMXN} MXN</span>
                 </div>
               )}
+              {cantidadNum > 2000 && (
+                <div style={{
+                  marginTop: "8px", backgroundColor: "#fef2f2",
+                  border: "1px solid #fecaca", borderRadius: "8px",
+                  padding: "8px 12px", fontSize: "12px", color: "#dc2626", fontWeight: "600"
+                }}>
+                  ⚠️ Monto maximo: $2,000 USD por envio
+                </div>
+              )}
             </div>
           </div>
 
           <button onClick={() => setPaso(2)}
-            disabled={!form.nombreRemitente || !form.telefonoRemitente || !form.cantidad}
+            disabled={!form.nombreRemitente || !form.telefonoRemitente || !form.cantidad || cantidadNum > 2000 || cantidadNum < 10}
             style={{width: "100%", marginTop: "28px",
-              backgroundColor: !form.nombreRemitente || !form.telefonoRemitente || !form.cantidad ? colors.apoyo : colors.secundario,
+              backgroundColor: !form.nombreRemitente || !form.telefonoRemitente || !form.cantidad || cantidadNum > 2000 || cantidadNum < 10 ? colors.apoyo : colors.secundario,
               color: "white", border: "none", padding: "16px", borderRadius: "12px",
               fontSize: "16px", fontWeight: "700",
-              cursor: !form.nombreRemitente || !form.telefonoRemitente || !form.cantidad ? "not-allowed" : "pointer"}}>
+              cursor: !form.nombreRemitente || !form.telefonoRemitente || !form.cantidad || cantidadNum > 2000 || cantidadNum < 10 ? "not-allowed" : "pointer"}}>
             Continuar →
           </button>
         </div>
@@ -356,9 +457,14 @@ export default function EnviarSimple({ colors }) {
 
       {/* PASO 2: DESTINATARIO */}
       {paso === 2 && (
-        <div style={{backgroundColor: "white", borderRadius: "20px", padding: "40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `1px solid ${colors.apoyo}40`}}>
+        <div style={{backgroundColor: "white", borderRadius: "20px", padding: isMobile ? "24px 20px" : "40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `1px solid ${colors.apoyo}40`}}>
           <div style={{textAlign: "center", marginBottom: "32px"}}>
-            <div style={{fontSize: "48px", marginBottom: "12px"}}>👨‍👩‍👧</div>
+            <img src="/nft-familia.png" alt="Familia" style={{
+              width: "72px", height: "72px",
+              borderRadius: "50%", objectFit: "cover",
+              marginBottom: "12px",
+              border: `3px solid ${colors.apoyo}`
+            }} />
             <h2 style={{fontSize: "24px", fontWeight: "800", color: colors.principal, margin: "0 0 8px 0"}}>
               A quien le mandas?
             </h2>
@@ -417,9 +523,9 @@ export default function EnviarSimple({ colors }) {
 
       {/* PASO 3: CONFIRMAR Y REGISTRAR EN BLOCKCHAIN */}
       {paso === 3 && (
-        <div style={{backgroundColor: "white", borderRadius: "20px", padding: "40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `1px solid ${colors.apoyo}40`}}>
+        <div style={{backgroundColor: "white", borderRadius: "20px", padding: isMobile ? "24px 20px" : "40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `1px solid ${colors.apoyo}40`}}>
           <div style={{textAlign: "center", marginBottom: "28px"}}>
-            <div style={{fontSize: "48px", marginBottom: "12px"}}>✅</div>
+            <Icon nombre="checked" size={56} color="16A34A" style={{marginBottom: "12px"}} />
             <h2 style={{fontSize: "24px", fontWeight: "800", color: colors.principal, margin: "0 0 8px 0"}}>
               Confirma tu envio
             </h2>
@@ -445,6 +551,31 @@ export default function EnviarSimple({ colors }) {
               </div>
             ))}
           </div>
+
+          {/* Cupon activo */}
+          {cuponActivo && !cuponActivo.usado && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "10px",
+              padding: "12px 14px",
+              backgroundColor: "#f0fdf4",
+              border: "1px solid #bbf7d0",
+              borderRadius: "10px",
+              marginTop: "8px"
+            }}>
+              <span style={{fontSize: "20px"}}>{cuponActivo.icono}</span>
+              <div>
+                <div style={{fontSize: "13px", fontWeight: "700", color: "#15803d"}}>
+                  Cupon aplicado: {cuponActivo.nombre}
+                </div>
+                <div style={{fontSize: "11px", color: "#6b7280"}}>
+                  {cuponActivo.tipo === "gratis" && "Este envio es GRATIS (sin comision)"}
+                  {cuponActivo.tipo === "descuento" && "50% de descuento aplicado ($0.25 USD)"}
+                  {cuponActivo.tipo === "vip" && "Tipo de cambio VIP: $18.20 MXN/USD"}
+                  {cuponActivo.tipo === "cashback" && `Recibiras $${cuponActivo.valor} USD de cashback`}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Info blockchain */}
           <div style={{backgroundColor: `${colors.principal}08`, border: `1px solid ${colors.principal}20`, borderRadius: "12px", padding: "16px", marginBottom: "24px"}}>
@@ -483,9 +614,18 @@ export default function EnviarSimple({ colors }) {
 
           {procesando && (
             <div style={{marginTop: "16px", textAlign: "center", fontSize: "13px", color: colors.textoSec}}>
-              <div style={{marginBottom: "6px"}}>🦊 Esperando confirmacion de MetaMask...</div>
-              <div style={{marginBottom: "6px"}}>🔗 Registrando en Ethereum Sepolia...</div>
-              <div>⏳ Esto puede tomar 15-30 segundos...</div>
+              <div style={{marginBottom: "8px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"}}>
+                <Icon nombre="connected" size={16} color="8E8578" />
+                Esperando confirmacion de MetaMask...
+              </div>
+              <div style={{marginBottom: "8px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"}}>
+                <Icon nombre="chain" size={16} color="8E8578" />
+                Registrando en Ethereum Sepolia...
+              </div>
+              <div style={{display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"}}>
+                <Icon nombre="time" size={16} color="8E8578" />
+                Esto puede tomar 15-30 segundos...
+              </div>
             </div>
           )}
         </div>
@@ -493,7 +633,7 @@ export default function EnviarSimple({ colors }) {
 
       {/* PASO 4: EXITO */}
       {paso === 4 && (
-        <div style={{backgroundColor: "white", borderRadius: "20px", padding: "48px 40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `2px solid #16a34a`, textAlign: "center"}}>
+        <div style={{backgroundColor: "white", borderRadius: "20px", padding: isMobile ? "24px 20px" : "48px 40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `2px solid #16a34a`, textAlign: "center"}}>
           <div style={{fontSize: "72px", marginBottom: "16px"}}>🎉</div>
           <h2 style={{fontSize: "28px", fontWeight: "900", color: "#15803d", margin: "0 0 8px 0"}}>
             Remesa registrada!

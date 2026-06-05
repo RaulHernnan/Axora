@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import { ethers } from "ethers";
+import useIsMobile from "../lib/useIsMobile";
 
 export default function Login({ onLogin, colors }) {
   const [panelActivo, setPanelActivo] = useState("login");
   const [form, setForm] = useState({ nombre: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const isMobile = useIsMobile();
 
   const generarWallet = (email, password) => {
     const seed = ethers.id(email + password + "axora2026");
@@ -86,26 +88,52 @@ export default function Login({ onLogin, colors }) {
         boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
         position: "relative",
         overflow: "hidden",
-        width: "850px",
+        width: isMobile ? "100%" : "850px",
         maxWidth: "100%",
-        minHeight: "520px",
+        minHeight: isMobile ? "580px" : "520px",
         display: "flex"
       }}>
+
+        {/* Mobile tabs */}
+        {isMobile && (
+          <div style={{
+            position: "absolute", top: "20px", left: "20px", right: "20px",
+            zIndex: 200,
+            display: "flex", backgroundColor: "#F8F6F3",
+            borderRadius: "12px", padding: "4px"
+          }}>
+            {["login", "registro"].map(t => (
+              <button key={t}
+                onClick={() => { setPanelActivo(t); setError(""); }}
+                style={{
+                  flex: 1, padding: "10px", borderRadius: "10px",
+                  border: "none", fontSize: "14px", fontWeight: "700",
+                  cursor: "pointer",
+                  backgroundColor: panelActivo === t ? "white" : "transparent",
+                  color: panelActivo === t ? "#294C74" : "#8E8578"
+                }}
+              >
+                {t === "login" ? "Entrar" : "Crear cuenta"}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* FORMULARIO LOGIN */}
         <div style={{
           position: "absolute",
           top: 0, left: 0,
-          width: "50%", height: "100%",
-          transition: "all 0.6s ease-in-out",
-          transform: isRight ? "translateX(100%)" : "translateX(0)",
-          opacity: isRight ? 0 : 1,
-          zIndex: isRight ? 1 : 2,
+          width: isMobile ? "100%" : "50%", height: "100%",
+          transition: isMobile ? "opacity 0.3s" : "all 0.6s ease-in-out",
+          transform: isMobile ? "none" : (isRight ? "translateX(100%)" : "translateX(0)"),
+          opacity: isMobile ? (panelActivo === "login" ? 1 : 0) : (isRight ? 0 : 1),
+          zIndex: isMobile ? (panelActivo === "login" ? 2 : 1) : (isRight ? 1 : 2),
+          pointerEvents: isMobile && panelActivo !== "login" ? "none" : "auto",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          padding: "40px",
+          padding: isMobile ? "88px 24px 40px" : "40px",
           backgroundColor: "white"
         }}>
           <img src="/axoraLogo.png" alt="Axora" style={{height: "48px", marginBottom: "20px", objectFit: "contain"}} />
@@ -155,16 +183,17 @@ export default function Login({ onLogin, colors }) {
         <div style={{
           position: "absolute",
           top: 0, left: 0,
-          width: "50%", height: "100%",
-          transition: "all 0.6s ease-in-out",
-          transform: isRight ? "translateX(100%)" : "translateX(0)",
-          opacity: isRight ? 1 : 0,
-          zIndex: isRight ? 5 : 1,
+          width: isMobile ? "100%" : "50%", height: "100%",
+          transition: isMobile ? "opacity 0.3s" : "all 0.6s ease-in-out",
+          transform: isMobile ? "none" : (isRight ? "translateX(100%)" : "translateX(0)"),
+          opacity: isMobile ? (panelActivo === "registro" ? 1 : 0) : (isRight ? 1 : 0),
+          zIndex: isMobile ? (panelActivo === "registro" ? 5 : 1) : (isRight ? 5 : 1),
+          pointerEvents: isMobile && panelActivo !== "registro" ? "none" : "auto",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          padding: "40px",
+          padding: isMobile ? "88px 24px 40px" : "40px",
           backgroundColor: "white"
         }}>
           <img src="/axoraLogo.png" alt="Axora" style={{height: "48px", marginBottom: "16px", objectFit: "contain"}} />
@@ -198,7 +227,8 @@ export default function Login({ onLogin, colors }) {
           </button>
         </div>
 
-        {/* OVERLAY ANIMADO */}
+        {/* OVERLAY ANIMADO - desktop only */}
+        {!isMobile && (
         <div style={{
           position: "absolute",
           top: 0,
@@ -269,6 +299,7 @@ export default function Login({ onLogin, colors }) {
             </div>
           </div>
         </div>
+        )}
 
       </div>
     </div>

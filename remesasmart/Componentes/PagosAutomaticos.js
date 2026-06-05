@@ -1,16 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
+import useIsMobile from "../lib/useIsMobile";
+import { agregarPuntos } from "../lib/rewards";
+import Icon from "./Icon";
 
 const SERVICIOS = [
-  { id: "cfe", nombre: "CFE", icono: "💡", descripcion: "Luz electrica", color: "#f59e0b" },
-  { id: "telmex", nombre: "Telmex / Izzi", icono: "🌐", descripcion: "Internet y telefono", color: "#3b82f6" },
-  { id: "agua", nombre: "Agua", icono: "💧", descripcion: "Servicio de agua", color: "#06b6d4" },
-  { id: "gas", nombre: "Gas", icono: "🔥", descripcion: "Gas natural o LP", color: "#ef4444" },
+  { id: "cfe", nombre: "CFE", iconoNombre: "light-on", iconoColor: "F59E0B", descripcion: "Luz electrica", color: "#f59e0b" },
+  { id: "telmex", nombre: "Telmex / Izzi", iconoNombre: "internet", iconoColor: "3B82F6", descripcion: "Internet y telefono", color: "#3b82f6" },
+  { id: "agua", nombre: "Agua", iconoNombre: "water", iconoColor: "06B6D4", descripcion: "Servicio de agua", color: "#06b6d4" },
+  { id: "gas", nombre: "Gas", iconoNombre: "fire-element", iconoColor: "EF4444", descripcion: "Gas natural o LP", color: "#ef4444" },
 ];
 
 const DIAS = Array.from({ length: 28 }, (_, i) => i + 1);
 
-export default function PagosAutomaticos({ colors, usuario }) {
+export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
+  const isMobile = useIsMobile();
   const [pagos, setPagos] = useState([]);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -84,7 +88,8 @@ export default function PagosAutomaticos({ colors, usuario }) {
       id: editando || Date.now().toString(),
       servicio: form.servicio,
       nombreServicio: servicio.nombre,
-      iconoServicio: servicio.icono,
+      iconoNombre: servicio.iconoNombre,
+      iconoColor: servicio.colorServicio || servicio.color.replace("#",""),
       colorServicio: servicio.color,
       nombreBeneficiario: form.nombreBeneficiario,
       clabe: form.clabe,
@@ -104,6 +109,16 @@ export default function PagosAutomaticos({ colors, usuario }) {
       setExito("Pago actualizado correctamente");
     } else {
       nuevosPagos = [...pagos, nuevoPago];
+      // Dar puntos y desbloquear NFT Guardian si es primer pago
+      if (!editando && usuario) {
+        const resultado = agregarPuntos(usuario, "PAGO_AUTOMATICO");
+        if (onPuntos) onPuntos({
+          mensaje: resultado.mensaje,
+          totalPuntos: resultado.rewards.puntos,
+          nuevosNFTs: resultado.nuevosNFTs,
+          envioGratis: resultado.rewards.envioGratis
+        });
+      }
       setExito("Pago configurado y registrado en blockchain");
     }
 
@@ -189,16 +204,16 @@ export default function PagosAutomaticos({ colors, usuario }) {
           gap: "16px", marginBottom: "32px"
         }}>
           {[
-            {icon: "⚡", label: "Pagos activos", valor: pagos.filter(p => p.activo).length, color: colors.secundario},
-            {icon: "💰", label: "Total mensual MXN", valor: `$${totalMensual.toLocaleString("es-MX")} MXN`, color: colors.principal},
-            {icon: "💵", label: "Equivalente USD", valor: `~$${totalUSD} USD`, color: "#16a34a"},
+            {icon: <Icon nombre="lightning-bolt" size={28} color="F17633" />, label: "Pagos activos", valor: pagos.filter(p => p.activo).length, color: colors.secundario},
+            {icon: <Icon nombre="money-bag" size={28} color="294C74" />, label: "Total mensual MXN", valor: `$${totalMensual.toLocaleString("es-MX")} MXN`, color: colors.principal},
+            {icon: <Icon nombre="money" size={28} color="16A34A" />, label: "Equivalente USD", valor: `~$${totalUSD} USD`, color: "#16a34a"},
           ].map((stat, i) => (
             <div key={i} style={{
               backgroundColor: "white", borderRadius: "16px", padding: "20px",
               border: `1px solid ${colors.apoyo}40`,
               boxShadow: "0 2px 8px rgba(41,76,116,0.04)"
             }}>
-              <div style={{fontSize: "24px", marginBottom: "8px"}}>{stat.icon}</div>
+              <div style={{marginBottom: "8px"}}>{stat.icon}</div>
               <div style={{fontSize: "22px", fontWeight: "800", color: stat.color, marginBottom: "4px"}}>{stat.valor}</div>
               <div style={{fontSize: "12px", color: colors.textoSec, fontWeight: "500"}}>{stat.label}</div>
             </div>
@@ -213,7 +228,7 @@ export default function PagosAutomaticos({ colors, usuario }) {
           textAlign: "center", boxShadow: "0 4px 20px rgba(41,76,116,0.06)",
           border: `1px solid ${colors.apoyo}40`
         }}>
-          <div style={{fontSize: "72px", marginBottom: "16px"}}>⚡</div>
+          <Icon nombre="lightning-bolt" size={64} color="F17633" style={{marginBottom: "16px"}} />
           <h2 style={{fontSize: "24px", fontWeight: "800", color: colors.principal, margin: "0 0 8px 0"}}>
             Sin pagos configurados
           </h2>
@@ -245,10 +260,19 @@ export default function PagosAutomaticos({ colors, usuario }) {
                   width: "52px", height: "52px", borderRadius: "14px",
                   backgroundColor: pago.colorServicio + "20",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "26px", flexShrink: 0,
+                  flexShrink: 0,
                   border: `2px solid ${pago.colorServicio}30`
                 }}>
-                  {pago.iconoServicio}
+                  {(() => {
+                    const iconoMap = {
+                      cfe: {nombre: "light-on", color: "F59E0B"},
+                      telmex: {nombre: "internet", color: "3B82F6"},
+                      agua: {nombre: "water", color: "06B6D4"},
+                      gas: {nombre: "fire-element", color: "EF4444"}
+                    };
+                    const icono = iconoMap[pago.servicio] || {nombre: "recurring-appointment", color: "294C74"};
+                    return <Icon nombre={icono.nombre} size={26} color={icono.color} />;
+                  })()}
                 </div>
 
                 {/* Info */}
@@ -268,10 +292,15 @@ export default function PagosAutomaticos({ colors, usuario }) {
                     </span>
                   </div>
                   <div style={{fontSize: "13px", color: colors.textoSec, display: "flex", gap: "16px", flexWrap: "wrap"}}>
-                    <span>👤 {pago.nombreBeneficiario}</span>
-                    <span>🏦 {pago.banco} ****{pago.clabe.slice(-4)}</span>
-                    <span>📅 Día {pago.diaPago} de cada mes</span>
-                    {pago.ultimoPago && <span>✅ Último: {pago.ultimoPago}</span>}
+                    <span style={{display:"flex",alignItems:"center",gap:"4px"}}>
+                      <Icon nombre="user" size={14} color="8E8578" /> {pago.nombreBeneficiario}
+                    </span>
+                    <span style={{display:"flex",alignItems:"center",gap:"4px"}}>
+                      <Icon nombre="bank-building" size={14} color="8E8578" /> {pago.banco} ****{pago.clabe.slice(-4)}
+                    </span>
+                    <span style={{display:"flex",alignItems:"center",gap:"4px"}}>
+                      <Icon nombre="calendar" size={14} color="8E8578" /> Día {pago.diaPago} de cada mes
+                    </span>
                   </div>
                   {pago.notas && (
                     <div style={{fontSize: "12px", color: colors.textoSec, marginTop: "4px", fontStyle: "italic"}}>
@@ -391,7 +420,9 @@ export default function PagosAutomaticos({ colors, usuario }) {
                   textAlign: "center",
                   transition: "all 0.2s"
                 }}>
-                  <div style={{fontSize: "24px", marginBottom: "4px"}}>{s.icono}</div>
+                  <div style={{fontSize: "24px", marginBottom: "4px"}}>
+                    <Icon nombre={s.iconoNombre} size={28} color={s.iconoColor} />
+                  </div>
                   <div style={{fontSize: "12px", fontWeight: "700", color: form.servicio === s.id ? s.color : colors.textoSec}}>
                     {s.nombre}
                   </div>
@@ -401,7 +432,7 @@ export default function PagosAutomaticos({ colors, usuario }) {
             </div>
           </div>
 
-          <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px"}}>
+          <div style={{display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "16px", marginBottom: "16px"}}>
             <div>
               <label style={labelStyle}>Nombre del beneficiario</label>
               <input type="text" value={form.nombreBeneficiario}
@@ -431,7 +462,7 @@ export default function PagosAutomaticos({ colors, usuario }) {
             </div>
           </div>
 
-          <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px"}}>
+          <div style={{display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "16px", marginBottom: "16px"}}>
             <div>
               <label style={labelStyle}>Monto mensual (pesos MXN)</label>
               <div style={{position: "relative"}}>
