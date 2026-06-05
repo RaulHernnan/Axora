@@ -6,13 +6,34 @@
 
 ## 📑 Contenido
 
-- [¿Qué es Axora?](#qué-es-axora)
-- [Características](#características)
-- [Comparativa de costos](#comparativa-de-costos)
-- [Smart Contracts](#smart-contracts)
-- [Tech Stack](#tech-stack)
-- [Instalación](#instalación)
-- [Equipo](#equipo)
+- 🤔 [¿Qué es Axora?](#qué-es-axora)
+- ✨ [Características](#características)
+- 💰 [Comparativa de costos](#comparativa-de-costos)
+- 🔗 [Smart Contracts](#smart-contracts)
+- 🛠️ [Tech Stack](#tech-stack)
+- 📦 [Instalación](#instalación)
+- 👥 [Equipo](#equipo)
+
+<details open>
+<summary><b>📋 Vista rápida de secciones</b></summary>
+
+- 🤔 [¿Qué es Axora?](#qué-es-axora)
+- ✨ [Características](#características)
+- 💰 [Comparativa de costos](#comparativa-de-costos)
+- 🔗 [Smart Contracts](#smart-contracts)
+- 🛠️ [Tech Stack](#tech-stack)
+- 📦 [Instalación](#instalación)
+- 👥 [Equipo](#equipo)
+
+</details>
+
+- **[¿Qué es Axora?](#qué-es-axora)** - Conoce nuestra plataforma de remesas
+- **[Características](#características)** - Lo que nos hace especiales
+- **[Comparativa de costos](#comparativa-de-costos)** - Por qué somos más económicos
+- **[Smart Contracts](#smart-contracts)** - Contratos desplegados en blockchain
+- **[Tech Stack](#tech-stack)** - Tecnologías utilizadas
+- **[Instalación](#instalación)** - Cómo configurar el proyecto
+- **[Equipo](#equipo)** - Quiénes somos
 
 ## ¿Qué es Axora?
 
