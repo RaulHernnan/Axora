@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Icon from "./Icon";
 
 export default function PopupPuntos({ evento, onClose, colors }) {
   const [visible, setVisible] = useState(true);
@@ -42,7 +43,7 @@ export default function PopupPuntos({ evento, onClose, colors }) {
             display: "flex", alignItems: "center",
             justifyContent: "center", fontSize: "22px",
             flexShrink: 0
-          }}>⭐</div>
+          }}><Icon nombre="star" size={22} color="F17633" /></div>
           <div>
             <div style={{fontSize: "13px", fontWeight: "800", color: colors.principal}}>
               {evento.mensaje}
@@ -64,7 +65,7 @@ export default function PopupPuntos({ evento, onClose, colors }) {
             fontWeight: "700",
             textAlign: "center"
           }}>
-            🎉 Tu proximo envio es GRATIS!
+            <Icon nombre="confetti" size={16} color="15803d" style={{marginRight:"6px",verticalAlign:"middle"}} />Tu proximo envio es GRATIS!
           </div>
         )}
       </div>

@@ -2,8 +2,10 @@
 import { useState, useEffect, useRef } from "react";
 import { getNotificaciones, marcarLeida, marcarTodasLeidas } from "../lib/notifications";
 import Icon from "./Icon";
+import useIsMobile from "../lib/useIsMobile";
 
 export default function Notificaciones({ usuario, colors, onUpdate }) {
+  const isMobile = useIsMobile();
   const [abierto, setAbierto] = useState(false);
   const [notifs, setNotifs] = useState([]);
   const ref = useRef(null);
@@ -83,8 +85,12 @@ export default function Notificaciones({ usuario, colors, onUpdate }) {
       {/* Panel de notificaciones */}
       {abierto && (
         <div style={{
-          position: "absolute", top: "calc(100% + 8px)", right: 0,
-          width: "360px", backgroundColor: "white",
+          position: "fixed",
+          top: "70px",
+          right: isMobile ? "8px" : "0",
+          left: isMobile ? "8px" : "auto",
+          width: isMobile ? "calc(100vw - 16px)" : "360px",
+          backgroundColor: "white",
           borderRadius: "16px",
           boxShadow: "0 20px 60px rgba(41,76,116,0.2)",
           border: `1px solid ${colors.apoyo}40`,

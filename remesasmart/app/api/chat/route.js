@@ -31,7 +31,7 @@ Puedes ayudar con:
 - Detectar posibles estafas
 
 Datos utiles:
-- Axora cobra solo $0.50 USD por envio
+- Axora cobra solo $1.50 USD por envio
 - Western Union cobra $5-8 USD por envio
 - Los envios llegan en 2 minutos
 - Usamos USDC que es un dolar digital estable

@@ -62,7 +62,7 @@ export const NFT_BADGES = [
 
 export const RECOMPENSAS = [
   { id: "descuento_50", nombre: "50% de descuento", descripcion: "En tu proximo envio",
-    puntos: 500, icono: "price-tag", tipo: "descuento", valor: 0.50 },
+    puntos: 500, icono: "price-tag", tipo: "descuento", valor: 0.75 },
   { id: "envio_gratis", nombre: "Envio GRATIS", descripcion: "Sin comision en tu proximo envio",
     puntos: 1000, icono: "gift", tipo: "gratis", valor: 0 },
   { id: "cashback_5", nombre: "Cashback $5 USD", descripcion: "Saldo en tu wallet",
@@ -116,11 +116,11 @@ export const saveRewards = (usuario, data) => {
 };
 
 export const calcularNivel = (puntos) => {
-  if (puntos >= 10000) return { nivel: "Platino", color: "#7C3AED", icono: "💎", siguiente: null };
-  if (puntos >= 5000) return { nivel: "Oro", color: "#F59E0B", icono: "🥇", siguiente: 10000 };
-  if (puntos >= 2000) return { nivel: "Plata", color: "#6B7280", icono: "🥈", siguiente: 5000 };
-  if (puntos >= 500) return { nivel: "Bronce", color: "#CD7F32", icono: "🥉", siguiente: 2000 };
-  return { nivel: "Nuevo", color: "#294C74", icono: "🌱", siguiente: 500 };
+  if (puntos >= 10000) return { nivel: "Platino", color: "#7C3AED", icono: "diamond", siguiente: null };
+  if (puntos >= 5000) return { nivel: "Oro", color: "#F59E0B", icono: "trophy", siguiente: 10000 };
+  if (puntos >= 2000) return { nivel: "Plata", color: "#6B7280", icono: "medal", siguiente: 5000 };
+  if (puntos >= 500) return { nivel: "Bronce", color: "#CD7F32", icono: "medal", siguiente: 2000 };
+  return { nivel: "Nuevo", color: "#294C74", icono: "star", siguiente: 500 };
 };
 
 export const agregarPuntos = (usuario, accion, cantidad = 0) => {

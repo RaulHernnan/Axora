@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { ethers } from "ethers";
 import useIsMobile from "../lib/useIsMobile";
+import Icon from "./Icon";
 
 export default function Login({ onLogin, colors }) {
   const [panelActivo, setPanelActivo] = useState("login");
@@ -149,8 +150,8 @@ export default function Login({ onLogin, colors }) {
           />
 
           {error && panelActivo === "login" && (
-            <div style={{width: "100%", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px", marginBottom: "12px", fontSize: "12px", color: "#dc2626"}}>
-              ⚠️ {error}
+            <div style={{width: "100%", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px", marginBottom: "12px", fontSize: "12px", color: "#dc2626", display: "flex", alignItems: "center", gap: "6px"}}>
+              <Icon nombre="error" size={14} color="dc2626" /> {error}
             </div>
           )}
 
@@ -158,9 +159,10 @@ export default function Login({ onLogin, colors }) {
             width: "100%", backgroundColor: colors.secundario, color: "white",
             border: "none", padding: "13px", borderRadius: "25px",
             fontSize: "15px", fontWeight: "700", cursor: "pointer",
-            marginBottom: "16px", transition: "transform 0.2s"
+            marginBottom: "16px", transition: "transform 0.2s",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"
           }}>
-            {cargando ? "⏳ Ingresando..." : "Iniciar Sesion"}
+            {cargando ? <><Icon nombre="time" size={16} color="FFFFFF" /> <span>Ingresando...</span></> : "Iniciar Sesion"}
           </button>
 
           <div style={{display: "flex", alignItems: "center", gap: "10px", width: "100%", marginBottom: "14px"}}>
@@ -175,7 +177,7 @@ export default function Login({ onLogin, colors }) {
             fontSize: "14px", fontWeight: "700", cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"
           }}>
-            🦊 Conectar MetaMask
+            <Icon nombre="wallet" size={20} color="294C74" /> Conectar MetaMask
           </button>
         </div>
 
@@ -213,17 +215,18 @@ export default function Login({ onLogin, colors }) {
           />
 
           {error && panelActivo === "registro" && (
-            <div style={{width: "100%", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px", marginBottom: "12px", fontSize: "12px", color: "#dc2626"}}>
-              ⚠️ {error}
+            <div style={{width: "100%", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px", marginBottom: "12px", fontSize: "12px", color: "#dc2626", display: "flex", alignItems: "center", gap: "6px"}}>
+              <Icon nombre="error" size={14} color="dc2626" /> {error}
             </div>
           )}
 
           <button onClick={crearCuenta} disabled={cargando} style={{
             width: "100%", backgroundColor: colors.secundario, color: "white",
             border: "none", padding: "13px", borderRadius: "25px",
-            fontSize: "15px", fontWeight: "700", cursor: "pointer", transition: "transform 0.2s"
+            fontSize: "15px", fontWeight: "700", cursor: "pointer", transition: "transform 0.2s",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"
           }}>
-            {cargando ? "⏳ Creando cuenta..." : "Crear Cuenta Gratis"}
+            {cargando ? <><Icon nombre="time" size={16} color="FFFFFF" /> <span>Creando cuenta...</span></> : "Crear Cuenta Gratis"}
           </button>
         </div>
 

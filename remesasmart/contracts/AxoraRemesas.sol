@@ -31,7 +31,7 @@ contract AxoraRemesas {
     }
 
     uint256 public totalRemesas;
-    uint256 public tarifaAxora = 50;
+    uint256 public tarifaAxora = 150;
     uint256 public tipoCambio = 1785; // $17.85 × 100
 
     mapping(uint256 => Remesa) public remesas;

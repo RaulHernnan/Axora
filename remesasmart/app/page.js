@@ -29,13 +29,13 @@ function ComparativaDinamica({ colors }) {
   }, [monto]);
 
   const servicios = [
-    { nombre: "Waster Onion", fee: 8.00, color: "#dc2626", bg: "#fef2f2", logo: "🧅", descripcion: "La mas cara del mercado" },
-    { nombre: "MoneySham", fee: 6.50, color: "#ea580c", bg: "#fff7ed", logo: "🎭", descripcion: "Comisiones escondidas" },
-    { nombre: "SlowWise", fee: 4.20, color: "#ca8a04", bg: "#fefce8", logo: "🐢", descripcion: "Lento y caro" },
-    { nombre: "Axora", fee: 0.50, color: colors.secundario, bg: "#fff7ed", logo: "axora", descripcion: "La mejor opcion", destacado: true },
+    { nombre: "Waster Onion", fee: 8.00, color: "#dc2626", bg: "#fef2f2", logo: "waster", descripcion: "La mas cara del mercado" },
+    { nombre: "MoneySham", fee: 6.50, color: "#ea580c", bg: "#fff7ed", logo: "moneysham", descripcion: "Comisiones escondidas" },
+    { nombre: "SlowWise", fee: 4.20, color: "#ca8a04", bg: "#fefce8", logo: "slowwise", descripcion: "Lento y caro" },
+    { nombre: "Axora", fee: 1.50, color: colors.secundario, bg: "#fff7ed", logo: "axora", descripcion: "La mejor opcion", destacado: true },
   ];
 
-  const maxRecibe = monto - 0.50;
+  const maxRecibe = monto - 1.50;
 
   return (
     <div style={{
@@ -143,7 +143,7 @@ function ComparativaDinamica({ colors }) {
         {servicios.map((item, i) => {
           const recibe = monto - item.fee;
           const porcentaje = animado ? (recibe / maxRecibe) * 100 : 0;
-          const ahorro = item.destacado ? null : (item.fee - 0.50).toFixed(2);
+          const ahorro = item.destacado ? null : (item.fee - 1.50).toFixed(2);
           const perdidaPct = Math.round((item.fee / monto) * 100 * 10) / 10;
 
           return (
@@ -166,9 +166,13 @@ function ComparativaDinamica({ colors }) {
                 <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
                   {item.logo === "axora" ? (
                     <img src="/axoraLogo.png" alt="Axora"
-                      style={{height: "22px", objectFit: "contain"}} />
+                      style={{height: "28px", objectFit: "contain"}} />
                   ) : (
-                    <span style={{fontSize: "20px"}}>{item.logo}</span>
+                    <img
+                      src={`/${item.logo === "waster" ? "Waster Onion" : item.logo === "moneysham" ? "MoneySham" : "SlowWise"}.png`}
+                      alt={item.nombre}
+                      style={{width: "32px", height: "32px", objectFit: "contain", borderRadius: "8px"}}
+                    />
                   )}
                   <div>
                     <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
@@ -209,7 +213,7 @@ function ComparativaDinamica({ colors }) {
                   )}
                   {item.destacado && (
                     <div style={{fontSize: "11px", color: "#16a34a", fontWeight: "600"}}>
-                      Solo 0.1% de comision
+                      Solo $1.50 fijo
                     </div>
                   )}
                 </div>
@@ -284,10 +288,10 @@ function ComparativaDinamica({ colors }) {
             Ahorras con Axora vs Waster Onion:
           </div>
           <div style={{fontSize: "36px", fontWeight: "900", marginBottom: "4px"}}>
-            ${(8.00 - 0.50).toFixed(2)} USD
+            ${(8.00 - 1.50).toFixed(2)} USD
           </div>
           <div style={{fontSize: "13px", color: "rgba(255,255,255,0.7)"}}>
-            En 12 envios: <strong>${((8.00 - 0.50) * 12).toFixed(2)} USD al año</strong>
+            En 12 envios: <strong>${((8.00 - 1.50) * 12).toFixed(2)} USD al año</strong>
           </div>
         </div>
 
@@ -301,10 +305,10 @@ function ComparativaDinamica({ colors }) {
             Tu familia recibe con Axora:
           </div>
           <div style={{fontSize: "36px", fontWeight: "900", marginBottom: "4px"}}>
-            ${(monto - 0.50).toFixed(2)} USD
+            ${(monto - 1.50).toFixed(2)} USD
           </div>
           <div style={{fontSize: "13px", color: "rgba(255,255,255,0.85)"}}>
-            de ${monto} USD enviados → <strong>{(((monto - 0.50) / monto) * 100).toFixed(1)}% llega</strong>
+            de ${monto} USD enviados → <strong>{(((monto - 1.50) / monto) * 100).toFixed(1)}% llega</strong>
           </div>
         </div>
       </div>
@@ -461,39 +465,41 @@ export default function Home() {
       {/* NAVBAR */}
       <nav style={{
         backgroundColor: "white",
-        padding: isMobile ? "0 16px" : "0 48px",
-        display: "flex",
-        alignItems: "center",
+        padding: isMobile ? "0 16px" : "0 24px",
+        display: "flex", alignItems: "center",
         justifyContent: "space-between",
         height: "70px",
         boxShadow: "0 2px 12px rgba(41,76,116,0.08)",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
+        position: "sticky", top: 0, zIndex: 100,
         borderBottom: `1px solid ${colors.apoyo}40`
       }}>
         {/* Logo */}
-        <div style={{display: "flex", alignItems: "center", gap: "12px", cursor: "pointer"}}
+        <div style={{display: "flex", alignItems: "center", cursor: "pointer", flexShrink: 0}}
           onClick={() => { setSeccion("inicio"); setMenuAbierto(false); }}>
           <img src="/axoraLogo.png" alt="Axora" style={{height: "40px", objectFit: "contain"}} />
         </div>
 
-        {/* Desktop: tabs */}
+        {/* Tabs centrados - solo desktop */}
         {!isMobile && (
-          <div style={{display: "flex", gap: "4px"}}>
+          <div style={{
+            display: "flex", gap: "4px",
+            position: "absolute", left: "50%",
+            transform: "translateX(-50%)"
+          }}>
             {[
-              {id: "inicio", label: "Inicio", icon: <Icon nombre="home" size={18} color="294C74" />},
-              {id: "enviar", label: "Enviar", icon: <Icon nombre="money-transfer" size={18} color="294C74" />},
-              {id: "pagos", label: "Pagos", icon: <Icon nombre="recurring-appointment" size={18} color="294C74" />},
-              {id: "recompensas", label: "Recompensas", icon: <Icon nombre="star" size={18} color="294C74" />},
-              {id: "chat", label: "Axo", icon: <img src="/axo.png" style={{width:"20px", height:"20px", borderRadius:"50%", objectFit:"cover"}} />}
+              {id: "inicio", label: "Inicio", icon: <Icon nombre="home" size={18} color={seccion === "inicio" ? "FFFFFF" : "8E8578"} />},
+              {id: "enviar", label: "Enviar", icon: <Icon nombre="money-transfer" size={18} color={seccion === "enviar" ? "FFFFFF" : "8E8578"} />},
+              {id: "pagos", label: "Pagos", icon: <Icon nombre="recurring-appointment" size={18} color={seccion === "pagos" ? "FFFFFF" : "8E8578"} />},
+              {id: "recompensas", label: "Recompensas", icon: <Icon nombre="star" size={18} color={seccion === "recompensas" ? "FFFFFF" : "8E8578"} />},
+              {id: "chat", label: "Axo", icon: <img src="/axo.png" style={{width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover"}} />}
             ].map(tab => (
               <button key={tab.id} onClick={() => setSeccion(tab.id)} style={{
                 backgroundColor: seccion === tab.id ? colors.principal : "transparent",
                 color: seccion === tab.id ? "white" : colors.textoSec,
                 border: "none", padding: "10px 16px", borderRadius: "10px",
                 fontSize: "13px", fontWeight: "600", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: "6px"
+                display: "flex", alignItems: "center", gap: "6px",
+                transition: "all 0.2s"
               }}>
                 {tab.icon}<span>{tab.label}</span>
               </button>
@@ -501,76 +507,83 @@ export default function Home() {
           </div>
         )}
 
-        {/* Notificaciones */}
-        {!isMobile && (
-          <Notificaciones
-            usuario={usuario}
-            colors={colors}
-            onUpdate={() => setNotifUpdate(p => p + 1)}
-          />
-        )}
-
-        {/* Desktop: usuario */}
-        {!isMobile && (
-          <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
-            <div style={{
-              backgroundColor: `${colors.principal}10`,
-              borderRadius: "10px", padding: "8px 12px",
-              display: "flex", alignItems: "center", gap: "8px"
-            }}>
+        {/* Derecha: Notificaciones + Usuario */}
+        <div style={{display: "flex", alignItems: "center", gap: "8px", flexShrink: 0}}>
+          {!isMobile && (
+            <>
+              {/* Campana */}
+              <Notificaciones
+                usuario={usuario}
+                colors={colors}
+                onUpdate={() => setNotifUpdate(p => p + 1)}
+              />
+              {/* Usuario */}
               <div style={{
-                width: "30px", height: "30px", borderRadius: "50%",
-                backgroundColor: colors.secundario,
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px"
+                backgroundColor: `${colors.principal}10`,
+                borderRadius: "10px", padding: "6px 12px",
+                display: "flex", alignItems: "center", gap: "8px"
               }}>
-                {usuario?.tipo === "metamask" ? "🦊" : "👤"}
-              </div>
-              <div>
-                <div style={{fontSize: "12px", fontWeight: "700", color: colors.principal}}>
-                  {usuario?.nombre?.split(" ")[0]}
+                <div style={{
+                  width: "30px", height: "30px", borderRadius: "50%",
+                  backgroundColor: colors.secundario,
+                  display: "flex", alignItems: "center",
+                  justifyContent: "center", fontSize: "14px"
+                }}>
+                  {usuario?.tipo === "metamask" ? "🦊" : "👤"}
                 </div>
-                {rewards && (
-                  <div style={{fontSize: "11px", color: colors.secundario, fontWeight: "700"}}>
-                    ⭐ {rewards.puntos} pts
+                <div>
+                  <div style={{fontSize: "12px", fontWeight: "700", color: colors.principal}}>
+                    {usuario?.nombre?.split(" ")[0]}
                   </div>
-                )}
+                  {rewards && (
+                    <div style={{fontSize: "11px", color: colors.secundario, fontWeight: "700"}}>
+                      ⭐ {rewards.puntos} pts
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-            <button onClick={cerrarSesion} style={{
-              backgroundColor: "transparent", color: colors.textoSec,
-              border: `1px solid ${colors.apoyo}`, padding: "8px 12px",
-              borderRadius: "10px", fontSize: "12px", fontWeight: "600", cursor: "pointer"
-            }}>Salir</button>
-          </div>
-        )}
+              <button onClick={cerrarSesion} style={{
+                backgroundColor: "transparent", color: colors.textoSec,
+                border: `1px solid ${colors.apoyo}`, padding: "8px 12px",
+                borderRadius: "10px", fontSize: "12px", fontWeight: "600", cursor: "pointer"
+              }}>Salir</button>
+            </>
+          )}
 
-        {/* Mobile: puntos + hamburguesa */}
-        {isMobile && (
-          <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
-            {rewards && (
-              <div style={{
-                backgroundColor: `${colors.secundario}15`,
-                borderRadius: "8px", padding: "4px 10px",
-                fontSize: "12px", fontWeight: "800", color: colors.secundario
-              }}>
-                ⭐ {rewards.puntos}
-              </div>
-            )}
-            <button
-              onClick={() => setMenuAbierto(!menuAbierto)}
-              style={{
-                backgroundColor: "transparent", border: "none",
-                cursor: "pointer", padding: "8px",
-                display: "flex", flexDirection: "column",
-                gap: "5px", alignItems: "center"
-              }}
-            >
-              <div style={{width: "22px", height: "2px", backgroundColor: menuAbierto ? colors.secundario : colors.principal, transition: "all 0.3s", transform: menuAbierto ? "rotate(45deg) translateY(7px)" : "none"}} />
-              <div style={{width: "22px", height: "2px", backgroundColor: menuAbierto ? "transparent" : colors.principal, transition: "all 0.3s"}} />
-              <div style={{width: "22px", height: "2px", backgroundColor: menuAbierto ? colors.secundario : colors.principal, transition: "all 0.3s", transform: menuAbierto ? "rotate(-45deg) translateY(-7px)" : "none"}} />
-            </button>
-          </div>
-        )}
+          {/* Mobile: puntos + campana + hamburguesa */}
+          {isMobile && (
+            <>
+              {rewards && (
+                <div style={{
+                  backgroundColor: `${colors.secundario}15`,
+                  borderRadius: "8px", padding: "4px 10px",
+                  fontSize: "12px", fontWeight: "800", color: colors.secundario
+                }}>
+                  ⭐ {rewards.puntos}
+                </div>
+              )}
+              {/* Campana en móvil */}
+              <Notificaciones
+                usuario={usuario}
+                colors={colors}
+                onUpdate={() => setNotifUpdate(p => p + 1)}
+              />
+              <button
+                onClick={() => setMenuAbierto(!menuAbierto)}
+                style={{
+                  backgroundColor: "transparent", border: "none",
+                  cursor: "pointer", padding: "8px",
+                  display: "flex", flexDirection: "column",
+                  gap: "5px", alignItems: "center"
+                }}
+              >
+                <div style={{width: "22px", height: "2px", backgroundColor: menuAbierto ? colors.secundario : colors.principal, transition: "all 0.3s", transform: menuAbierto ? "rotate(45deg) translateY(7px)" : "none"}} />
+                <div style={{width: "22px", height: "2px", backgroundColor: menuAbierto ? "transparent" : colors.principal, transition: "all 0.3s"}} />
+                <div style={{width: "22px", height: "2px", backgroundColor: menuAbierto ? colors.secundario : colors.principal, transition: "all 0.3s", transform: menuAbierto ? "rotate(-45deg) translateY(-7px)" : "none"}} />
+              </button>
+            </>
+          )}
+        </div>
       </nav>
 
       {/* Menu mobile desplegable */}
@@ -731,7 +744,7 @@ export default function Home() {
             {/* Stats */}
             <div style={{display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: "16px", marginBottom: "40px"}}>
               {[
-                {icon: <Icon nombre="coins" size={32} color="294C74" />, valor: "$0.50", label: "Comision por envio"},
+                {icon: <Icon nombre="coins" size={32} color="294C74" />, valor: "$1.50", label: "Comision por envio"},
                 {icon: <Icon nombre="time" size={32} color="294C74" />, valor: "2 min", label: "Tiempo de llegada"},
                 {icon: <Icon nombre="lock-2" size={32} color="294C74" />, valor: "100%", label: "Seguro blockchain"},
                 {icon: <img src="/axo.png" style={{width:"32px", height:"32px", borderRadius:"50%", objectFit:"cover"}} />, valor: "24/7", label: "Axo te asesora"}
@@ -758,6 +771,103 @@ export default function Home() {
                 </div>
               ))}
             </div>
+
+            {/* Historial de envíos recientes */}
+            {(() => {
+              const key = `axora_historial_${usuario?.email || usuario?.wallet}`;
+              const historial = JSON.parse(localStorage.getItem(key) || "[]");
+              if (historial.length === 0) return null;
+              return (
+                <div style={{
+                  backgroundColor: "white", borderRadius: "20px",
+                  padding: "32px", marginTop: "20px",
+                  boxShadow: "0 2px 12px rgba(41,76,116,0.06)",
+                  border: `1px solid ${colors.apoyo}40`
+                }}>
+                  <div style={{
+                    display: "flex", justifyContent: "space-between",
+                    alignItems: "center", marginBottom: "20px"
+                  }}>
+                    <div>
+                      <h3 style={{fontSize: "18px", fontWeight: "800",
+                        color: colors.principal, margin: "0 0 4px 0"}}>
+                        Envíos recientes
+                      </h3>
+                      <p style={{fontSize: "13px", color: colors.textoSec, margin: 0}}>
+                        Tus últimas transferencias
+                      </p>
+                    </div>
+                    <button onClick={() => setSeccion("enviar")} style={{
+                      backgroundColor: colors.secundario, color: "white",
+                      border: "none", padding: "8px 16px", borderRadius: "10px",
+                      fontSize: "13px", fontWeight: "700", cursor: "pointer"
+                    }}>
+                      + Nuevo envío
+                    </button>
+                  </div>
+
+                  <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
+                    {historial.slice(0, 5).map((envio, i) => (
+                      <div key={i} style={{
+                        display: "flex", alignItems: "center",
+                        gap: "14px", padding: "14px 16px",
+                        backgroundColor: colors.contenedor,
+                        borderRadius: "12px",
+                        border: `1px solid ${colors.apoyo}30`
+                      }}>
+                        {/* Avatar */}
+                        <div style={{
+                          width: "44px", height: "44px", borderRadius: "50%",
+                          background: `linear-gradient(135deg, ${colors.principal}, #3d6a9e)`,
+                          display: "flex", alignItems: "center",
+                          justifyContent: "center", flexShrink: 0
+                        }}>
+                          <Icon nombre="user" size={22} color="FFFFFF" />
+                        </div>
+
+                        {/* Info */}
+                        <div style={{flex: 1}}>
+                          <div style={{
+                            fontSize: "14px", fontWeight: "700",
+                            color: colors.principal, marginBottom: "2px"
+                          }}>
+                            {envio.nombre}
+                          </div>
+                          <div style={{fontSize: "12px", color: colors.textoSec}}>
+                            {envio.banco} · ****{envio.clabe.slice(-4)} · {envio.fecha}
+                          </div>
+                        </div>
+
+                        {/* Montos */}
+                        <div style={{textAlign: "right", flexShrink: 0}}>
+                          <div style={{
+                            fontSize: "16px", fontWeight: "900",
+                            color: colors.principal
+                          }}>
+                            ${envio.cantidadUSD} USD
+                          </div>
+                          <div style={{fontSize: "12px", color: "#16a34a", fontWeight: "600"}}>
+                            ${envio.cantidadMXN} MXN
+                          </div>
+                        </div>
+
+                        {/* Ver en Etherscan */}
+                        {envio.txHash && (
+                          <a
+                            href={`https://sepolia.etherscan.io/tx/${envio.txHash}`}
+                            target="_blank" rel="noopener noreferrer"
+                            style={{flexShrink: 0}}
+                            title="Ver en Etherscan"
+                          >
+                            <Icon nombre="chain" size={20} color="294C74" />
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 

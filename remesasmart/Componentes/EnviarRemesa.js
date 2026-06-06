@@ -1,5 +1,42 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getNFTOnchainData } from "../lib/rareMint";
+
+// Cada tier tiene su propia recompensa distinta — fee minimo $1.00
+const BADGE_TIERS = [
+  {
+    id: "axo_dorado",    label: "Axo Dorado",    img: "/nft-dorado.png",   color: "#f59e0b",
+    fee: 1.00, tcBonus: 0.20, gratisMes: false,
+    recompensa: "Comision $1.00 + tipo de cambio VIP (+$0.20 MXN/USD)",
+  },
+  {
+    id: "leyenda_axora", label: "Leyenda Axora", img: "/nft-leyenda.png",  color: "#8b5cf6",
+    fee: 1.00, tcBonus: 0,    gratisMes: false,
+    recompensa: "Comision $1.00 para siempre — la tarifa mas baja del mercado",
+  },
+  {
+    id: "heroe_familiar",label: "Axo Estelar",   img: "/nft-estelar.png",  color: "#3b82f6",
+    fee: 1.50, tcBonus: 0,    gratisMes: true,
+    recompensa: "1 envio gratis cada mes (se renueva automaticamente)",
+  },
+  {
+    id: "axo_guardian",  label: "Axo Guardian",  img: "/nft-guardian.png", color: "#10b981",
+    fee: 1.20, tcBonus: 0.10, gratisMes: false,
+    recompensa: "Tipo de cambio +$0.10/USD + comision reducida a $1.20",
+  },
+  {
+    id: "familia_unida", label: "Familia Unida", img: "/nft-familia.png",  color: "#06b6d4",
+    fee: 1.25, tcBonus: 0.10, gratisMes: false,
+    recompensa: "Tipo de cambio mejorado: +$0.10 MXN por cada dolar",
+  },
+];
+const FEE_BASE = 1.50;
+const TC_FALLBACK = 17.85;
+
+const claveGratisMes = (w) => {
+  const d = new Date();
+  return `axora_gratis_${w}_${d.getFullYear()}_${d.getMonth()}`;
+};
 
 export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
   const [destino, setDestino] = useState("");
@@ -7,9 +44,33 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
   const [estado, setEstado] = useState("");
   const [txHash, setTxHash] = useState("");
   const [error, setError] = useState("");
+  const [tierActivo, setTierActivo] = useState(null);
+  const [gratisDisponible, setGratisDisponible] = useState(false);
+  const [tcBase, setTcBase] = useState(TC_FALLBACK);
 
-  const fee = 0.50;
-  const tipoCambio = 17.85;
+  useEffect(() => {
+    fetch("/api/tipo-cambio")
+      .then(r => r.json())
+      .then(d => setTcBase(d.tc))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!wallet) { setTierActivo(null); setGratisDisponible(false); return; }
+    const nfts = getNFTOnchainData(wallet);
+    const mejor = BADGE_TIERS.find(t => nfts[t.id]);
+    setTierActivo(mejor ?? null);
+    if (mejor?.gratisMes) {
+      setGratisDisponible(!localStorage.getItem(claveGratisMes(wallet)));
+    } else {
+      setGratisDisponible(false);
+    }
+  }, [wallet]);
+
+  const tipoCambio = tcBase + (tierActivo?.tcBonus ?? 0);
+  const fee = (tierActivo?.gratisMes && gratisDisponible)
+    ? 0
+    : (tierActivo ? tierActivo.fee : FEE_BASE);
   const cantidadNum = parseFloat(cantidad) || 0;
   const totalConFee = cantidadNum + fee;
   const ahorroVsWU = cantidadNum > 0 ? (8.00 - fee).toFixed(2) : 0;
@@ -51,6 +112,10 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
 
       setTxHash(tx);
       setEstado("success");
+      if (tierActivo?.gratisMes && gratisDisponible) {
+        localStorage.setItem(claveGratisMes(wallet), "true");
+        setGratisDisponible(false);
+      }
       setCantidad("");
       setDestino("");
 
@@ -100,7 +165,7 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
             textAlign: "center",
             marginBottom: "24px"
           }}>
-            <div style={{fontSize: "40px", marginBottom: "12px"}}>🦊</div>
+            <div style={{marginBottom: "12px"}}><Icon nombre="wallet" size={40} color="294C74" /></div>
             <p style={{color: colors.textoSec, margin: "0 0 16px 0", fontSize: "14px"}}>
               Necesitas conectar tu wallet para enviar
             </p>
@@ -128,11 +193,67 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
             alignItems: "center",
             gap: "10px"
           }}>
-            <span style={{fontSize: "20px"}}>✅</span>
+            <Icon nombre="checkmark" size={20} color="15803d" />
             <div>
               <div style={{fontSize: "12px", color: "#15803d", fontWeight: "700"}}>WALLET CONECTADA</div>
               <div style={{fontSize: "13px", color: colors.textoSec, fontFamily: "monospace"}}>{wallet}</div>
             </div>
+          </div>
+        )}
+
+        {wallet && tierActivo && (
+          <div style={{
+            background: `linear-gradient(135deg, ${tierActivo.color}15, ${tierActivo.color}06)`,
+            border: `1px solid ${tierActivo.color}50`,
+            borderRadius: "14px",
+            padding: "14px 16px",
+            marginBottom: "20px",
+          }}>
+            <div style={{display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px"}}>
+              <img src={tierActivo.img} alt={tierActivo.label} style={{
+                width: "40px", height: "40px", borderRadius: "10px",
+                objectFit: "cover", flexShrink: 0,
+                border: `2px solid ${tierActivo.color}60`
+              }} />
+              <div style={{fontSize: "11px", fontWeight: "800", color: tierActivo.color, letterSpacing: "0.5px", flex: 1}}>
+                BENEFICIO NFT — {tierActivo.label.toUpperCase()}
+              </div>
+              {fee === 0 && (
+                <div style={{
+                  backgroundColor: tierActivo.color, color: "white",
+                  borderRadius: "20px", padding: "3px 12px",
+                  fontSize: "11px", fontWeight: "800"
+                }}>GRATIS</div>
+              )}
+            </div>
+
+            <div style={{fontSize: "13px", color: colors.textoSec, marginBottom: tierActivo.gratisMes || tierActivo.tcBonus ? "8px" : 0}}>
+              {tierActivo.recompensa}
+            </div>
+
+            {tierActivo.gratisMes && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                fontSize: "12px", fontWeight: "700",
+                color: gratisDisponible ? "#16a34a" : "rgba(0,0,0,0.4)",
+                backgroundColor: gratisDisponible ? "#f0fdf4" : "#f5f5f5",
+                border: `1px solid ${gratisDisponible ? "#bbf7d0" : "#e5e5e5"}`,
+                borderRadius: "8px", padding: "6px 10px",
+              }}>
+                <span>{gratisDisponible ? "✓" : "○"}</span>
+                {gratisDisponible
+                  ? "Envio gratis disponible este mes — se aplica automaticamente"
+                  : "Envio gratis del mes ya utilizado (se renueva el 1ro del mes)"}
+              </div>
+            )}
+
+            {tierActivo.tcBonus > 0 && (
+              <div style={{fontSize: "12px", color: colors.textoSec}}>
+                Tipo de cambio activo:{" "}
+                <strong style={{color: tierActivo.color}}>${tipoCambio.toFixed(2)} MXN/USD</strong>
+                {" "}<span style={{textDecoration: "line-through", opacity: 0.4}}>${tcBase.toFixed(2)}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -218,9 +339,10 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
             padding: "12px 16px",
             marginBottom: "16px",
             fontSize: "13px",
-            color: "#dc2626"
+            color: "#dc2626",
+            display: "flex", alignItems: "center", gap: "8px"
           }}>
-            ⚠️ {error}
+            <Icon nombre="error" size={16} color="dc2626" /> {error}
           </div>
         )}
 
@@ -246,9 +368,9 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
           }}
         >
           {estado === "loading" ? (
-            <>⏳ Procesando en blockchain...</>
+            <><Icon nombre="time" size={16} color="FFFFFF" /> <span>Procesando en blockchain...</span></>
           ) : (
-            <>📤 Enviar Remesa</>
+            <><Icon nombre="send" size={16} color="FFFFFF" /> <span>Enviar Remesa</span></>
           )}
         </button>
 
@@ -261,7 +383,7 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
             marginTop: "20px",
             textAlign: "center"
           }}>
-            <div style={{fontSize: "40px", marginBottom: "8px"}}>🎉</div>
+            <div style={{marginBottom: "8px"}}><Icon nombre="confetti" size={40} color="15803d" /></div>
             <div style={{fontSize: "16px", fontWeight: "800", color: "#15803d", marginBottom: "8px"}}>
               Remesa enviada exitosamente
             </div>
@@ -315,8 +437,16 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
           <div style={{display: "flex", flexDirection: "column", gap: "12px"}}>
             {[
               {label: "Cantidad a enviar", valor: `${cantidadNum.toFixed(4)} MATIC`},
-              {label: "Comision Axora", valor: `$${fee} USD`, color: colors.secundario},
-              {label: "Tipo de cambio", valor: `$${tipoCambio} MXN/USD`},
+              {
+                label: tierActivo ? `Comision (${tierActivo.label})` : "Comision Axora",
+                valor: fee === 0 ? "GRATIS" : `$${fee.toFixed(2)} USD`,
+                color: tierActivo ? tierActivo.color : colors.secundario
+              },
+              {
+                label: "Tipo de cambio",
+                valor: `$${tipoCambio.toFixed(2)} MXN/USD${tierActivo?.tcBonus ? " ✓" : ""}`,
+                color: tierActivo?.tcBonus ? tierActivo.color : undefined
+              },
               {label: "Recibes en pesos", valor: `$${enPesos} MXN`, destacado: true},
             ].map((item, i) => (
               <div key={i} style={{
@@ -334,6 +464,29 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
                 }}>{item.valor}</span>
               </div>
             ))}
+
+            {tierActivo?.tcBonus > 0 && cantidadNum > 0 && (
+              <div style={{
+                backgroundColor: `${tierActivo.color}12`,
+                border: `1px solid ${tierActivo.color}40`,
+                borderRadius: "10px",
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "8px"
+              }}>
+                <span style={{fontSize: "12px", color: tierActivo.color, fontWeight: "700"}}>
+                  Tu familia recibe extra por badge {tierActivo.label}:
+                </span>
+                <span style={{
+                  fontSize: "15px", fontWeight: "900",
+                  color: tierActivo.color, whiteSpace: "nowrap"
+                }}>
+                  +${(cantidadNum * tierActivo.tcBonus).toFixed(2)} MXN
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -378,10 +531,10 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
             Informacion de red
           </h3>
           {[
-            {icon: "🔗", label: "Red", valor: "Polygon Amoy"},
-            {icon: "⚡", label: "Velocidad", valor: "~2 minutos"},
-            {icon: "🔒", label: "Seguridad", valor: "Blockchain inmutable"},
-            {icon: "💎", label: "Token", valor: "MATIC (POL)"},
+            {icon: "chain", label: "Red", valor: "Polygon Amoy"},
+            {icon: "lightning-bolt", label: "Velocidad", valor: "~2 minutos"},
+            {icon: "lock-2", label: "Seguridad", valor: "Blockchain inmutable"},
+            {icon: "diamond", label: "Token", valor: "MATIC (POL)"},
           ].map((item, i) => (
             <div key={i} style={{
               display: "flex",
@@ -390,7 +543,7 @@ export default function EnviarRemesa({ wallet, conectarWallet, colors }) {
               padding: "8px 0",
               borderBottom: i < 3 ? `1px solid ${colors.apoyo}20` : "none"
             }}>
-              <span style={{fontSize: "18px"}}>{item.icon}</span>
+              <Icon nombre={item.icon} size={18} color="294C74" />
               <span style={{fontSize: "13px", color: colors.textoSec, flex: 1}}>{item.label}</span>
               <span style={{fontSize: "13px", fontWeight: "700", color: colors.principal}}>{item.valor}</span>
             </div>

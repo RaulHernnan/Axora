@@ -12,7 +12,7 @@ const GUIAS = {
       },
       {
         titulo: "Compara los precios",
-        mensaje: "Mueve el slider de la comparativa para ver cuanto recibiria tu familia segun el monto que quieras enviar. Axora cobra solo $0.50 vs los $8 de Western Union!",
+        mensaje: "Mueve el slider de la comparativa para ver cuanto recibiria tu familia segun el monto que quieras enviar. Axora cobra solo $1.50 vs los $8 de Western Union!",
         accion: null
       },
       {

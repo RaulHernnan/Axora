@@ -3,6 +3,148 @@ import { useState, useEffect } from "react";
 import useIsMobile from "../lib/useIsMobile";
 import Icon from "./Icon";
 
+function SeccionLealtad({ colors, isMobile }) {
+  const tiers = [
+    {
+      img: "/nft-baby-axo.png", nombre: "Baby Axo",     req: "1er envio",  color: "#6b7280",
+      tag: "Bienvenida",
+      recompensa: "Badge de bienvenida + acceso a Axo IA financiero",
+    },
+    {
+      img: "/nft-familia.png",  nombre: "Familia Unida", req: "5 envios",  color: "#06b6d4",
+      tag: "+$0.10/USD",
+      recompensa: "Tipo de cambio mejorado +$0.10 MXN por cada dolar enviado",
+    },
+    {
+      img: "/nft-estelar.png",  nombre: "Axo Estelar",  req: "10 envios", color: "#3b82f6",
+      tag: "1 gratis/mes",
+      recompensa: "1 envio completamente gratis cada mes (se renueva automaticamente)",
+    },
+    {
+      img: "/nft-leyenda.png",  nombre: "Leyenda Axora", req: "50 envios", color: "#8b5cf6",
+      tag: "Comision $1.00",
+      recompensa: "Comision reducida a $1.00 en todos tus envios — para siempre",
+    },
+    {
+      img: "/nft-dorado.png",   nombre: "Axo Dorado",   req: "Fundadores", color: "#f59e0b",
+      tag: "VIP Total",
+      recompensa: "Comision $1.00 + tipo de cambio VIP (+$0.20 MXN/USD) + badge exclusivo",
+    },
+  ];
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.03)",
+      borderRadius: "24px",
+      padding: isMobile ? "32px 20px" : "48px",
+      border: "1px solid rgba(255,255,255,0.08)"
+    }}>
+      <div style={{textAlign: "center", marginBottom: "40px"}}>
+        <div style={{
+          display: "inline-block",
+          backgroundColor: "rgba(241,118,51,0.15)",
+          color: "#F17633", padding: "4px 14px",
+          borderRadius: "20px", fontSize: "11px",
+          fontWeight: "700", letterSpacing: "1px",
+          marginBottom: "14px", textTransform: "uppercase"
+        }}>
+          NFT Badge Program
+        </div>
+        <h2 style={{
+          fontSize: isMobile ? "28px" : "40px",
+          fontWeight: "900", margin: "0 0 12px 0", lineHeight: "1.2"
+        }}>
+          Mas envios =<br/>
+          <span style={{
+            background: "linear-gradient(135deg, #F17633, #fbbf24)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent"
+          }}>
+            Menor comision
+          </span>
+        </h2>
+        <p style={{fontSize: "16px", color: "rgba(255,255,255,0.5)", margin: 0}}>
+          Tu NFT badge se aplica automaticamente en cada envio. Sin cupones, sin tramites.
+        </p>
+      </div>
+
+      <div style={{display: "flex", flexDirection: "column", gap: "12px"}}>
+        {tiers.map((tier, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "center",
+            gap: "16px",
+            backgroundColor: i === tiers.length - 1
+              ? `${tier.color}12`
+              : "rgba(255,255,255,0.04)",
+            borderRadius: "16px", padding: "18px 20px",
+            border: i === tiers.length - 1
+              ? `2px solid ${tier.color}60`
+              : `1px solid ${tier.color}25`,
+            flexWrap: isMobile ? "wrap" : "nowrap"
+          }}>
+            <img src={tier.img} alt={tier.nombre} style={{
+              width: "52px", height: "52px",
+              borderRadius: "12px", objectFit: "cover",
+              flexShrink: 0,
+              border: `2px solid ${tier.color}50`
+            }} />
+            <div style={{flex: 1, minWidth: "140px"}}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                marginBottom: "4px", flexWrap: "wrap"
+              }}>
+                <span style={{
+                  fontSize: "15px", fontWeight: "800",
+                  color: i === tiers.length - 1 ? tier.color : "white"
+                }}>
+                  {tier.nombre}
+                </span>
+                <span style={{
+                  fontSize: "10px", fontWeight: "800",
+                  backgroundColor: `${tier.color}25`,
+                  color: tier.color,
+                  borderRadius: "20px", padding: "2px 8px"
+                }}>
+                  {tier.req}
+                </span>
+              </div>
+              <div style={{fontSize: "12px", color: "rgba(255,255,255,0.55)", lineHeight: "1.5"}}>
+                {tier.recompensa}
+              </div>
+            </div>
+            <div style={{
+              backgroundColor: `${tier.color}20`,
+              border: `1px solid ${tier.color}50`,
+              borderRadius: "20px", padding: "5px 16px",
+              fontSize: "12px", fontWeight: "800",
+              color: tier.color, flexShrink: 0,
+              textAlign: "center"
+            }}>
+              {tier.tag}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        marginTop: "28px",
+        padding: "20px",
+        backgroundColor: "rgba(241,118,51,0.08)",
+        borderRadius: "16px",
+        border: "1px solid rgba(241,118,51,0.2)",
+        textAlign: "center"
+      }}>
+        <div style={{fontSize: "14px", color: "rgba(255,255,255,0.7)", lineHeight: "1.7"}}>
+          Los beneficios son permanentes y se activan automaticamente cuando conectas tu wallet.<br/>
+          <strong style={{color: "#F17633"}}>
+            Con Axo Dorado: envios gratis + tipo de cambio VIP. El paquete mas completo del mercado.
+          </strong>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ComparativaLanding({ colors, isMobile }) {
   const [monto, setMonto] = useState(100);
   const [animado, setAnimado] = useState(false);
@@ -17,13 +159,13 @@ function ComparativaLanding({ colors, isMobile }) {
   }, [monto]);
 
   const servicios = [
-    { nombre: "Waster Onion", fee: 8.00, color: "#dc2626", logo: "🧅", descripcion: "Pierdes mas dinero" },
-    { nombre: "MoneySham", fee: 6.50, color: "#ea580c", logo: "🎭", descripcion: "Comisiones ocultas" },
-    { nombre: "SlowWise", fee: 4.20, color: "#ca8a04", logo: "🐢", descripcion: "Lento y caro" },
-    { nombre: "Axora", fee: 0.50, color: "#F17633", logo: "axora", descripcion: "La mejor opcion", destacado: true },
+    { nombre: "Waster Onion", fee: 8.00, color: "#dc2626", logo: "waster", descripcion: "+$15 ocultos en tipo de cambio" },
+    { nombre: "MoneySham", fee: 6.50, color: "#ea580c", logo: "moneysham", descripcion: "Comisiones ocultas en cada envio" },
+    { nombre: "SlowWise", fee: 4.20, color: "#ca8a04", logo: "slowwise", descripcion: "Mas lento, tipo de cambio castigado" },
+    { nombre: "Axora", fee: 1.50, color: "#F17633", logo: "axora", descripcion: "Tipo de cambio real · Desde $1.00 con NFT badge", destacado: true },
   ];
 
-  const maxRecibe = monto - 0.50;
+  const maxRecibe = monto - 1.50;
 
   return (
     <div style={{
@@ -156,7 +298,11 @@ function ComparativaLanding({ colors, isMobile }) {
                       style={{height: "20px", objectFit: "contain",
                         backgroundColor: "white", borderRadius: "6px", padding: "2px 6px"}} />
                   ) : (
-                    <span style={{fontSize: "20px"}}>{item.logo}</span>
+                    <img
+                      src={`/${item.logo === "waster" ? "Waster Onion" : item.logo === "moneysham" ? "MoneySham" : "SlowWise"}.png`}
+                      alt={item.nombre}
+                      style={{width: "32px", height: "32px", objectFit: "contain", borderRadius: "8px"}}
+                    />
                   )}
                   <div>
                     <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
@@ -244,13 +390,13 @@ function ComparativaLanding({ colors, isMobile }) {
           border: "1px solid rgba(255,255,255,0.1)"
         }}>
           <div style={{fontSize: "13px", color: "rgba(255,255,255,0.55)", marginBottom: "6px"}}>
-            Ahorras vs Waster Onion:
+            Costo real de Waster Onion:
           </div>
-          <div style={{fontSize: "32px", fontWeight: "900", color: "white", marginBottom: "4px"}}>
-            ${(8.00 - 0.50).toFixed(2)} USD
+          <div style={{fontSize: "32px", fontWeight: "900", color: "#4ade80", marginBottom: "4px"}}>
+            ~$23 USD perdidos
           </div>
-          <div style={{fontSize: "13px", color: "rgba(255,255,255,0.5)"}}>
-            Al año: <strong style={{color: "#4ade80"}}>${((8.00 - 0.50) * 12).toFixed(2)} USD de ahorro</strong>
+          <div style={{fontSize: "11px", color: "rgba(255,255,255,0.45)"}}>
+            $8 comision visible + ~$15 ocultos en tipo de cambio
           </div>
         </div>
 
@@ -263,10 +409,10 @@ function ComparativaLanding({ colors, isMobile }) {
             Tu familia recibe con Axora:
           </div>
           <div style={{fontSize: "32px", fontWeight: "900", color: "white", marginBottom: "4px"}}>
-            ${(monto - 0.50).toFixed(2)} USD
+            ${(monto - 1.50).toFixed(2)} USD
           </div>
           <div style={{fontSize: "13px", color: "rgba(255,255,255,0.85)"}}>
-            {(((monto - 0.50) / monto) * 100).toFixed(1)}% de tu dinero llega
+            {(((monto - 1.50) / monto) * 100).toFixed(1)}% de tu dinero llega
           </div>
         </div>
       </div>
@@ -382,7 +528,7 @@ export default function Landing({ onEntrar, colors }) {
               marginBottom: "24px", fontWeight: "700",
               letterSpacing: "1px", textTransform: "uppercase"
             }}>
-              ⚡ Blockchain + IA + Web3
+              <Icon nombre="lightning-bolt" size={14} color="F17633" style={{marginRight:"6px",verticalAlign:"middle"}} />Blockchain + IA + Web3
             </div>
 
             <h1 style={{
@@ -430,7 +576,7 @@ export default function Landing({ onEntrar, colors }) {
                 justifyContent: "center", gap: "8px",
                 backdropFilter: "blur(10px)"
               }}>
-                ▶ Ver demo
+                <Icon nombre="play" size={16} color="FFFFFF" /> Ver demo
               </button>
             </div>
 
@@ -440,9 +586,9 @@ export default function Landing({ onEntrar, colors }) {
               marginTop: "48px", flexWrap: "wrap"
             }}>
               {[
-                {valor: "$0.50", label: "Comision por envio"},
+                {valor: "$1.50", label: "Comision por envio"},
                 {valor: "2 min", label: "Tiempo de llegada"},
-                {valor: "90%", label: "Ahorro vs Western Union"},
+                {valor: "81%", label: "Ahorro vs Western Union"},
               ].map((s, i) => (
                 <div key={i}>
                   <div style={{
@@ -489,7 +635,7 @@ export default function Landing({ onEntrar, colors }) {
                       borderRadius: "20px", padding: "4px 10px",
                       fontSize: "11px", fontWeight: "700",
                       color: colors.secundario
-                    }}>⭐ 250 pts</div>
+                    }}><Icon nombre="star" size={11} color="F17633" style={{marginRight:"3px",verticalAlign:"middle"}} />250 pts</div>
                   </div>
 
                   {/* Balance */}
@@ -782,7 +928,7 @@ export default function Landing({ onEntrar, colors }) {
               fontSize: "15px", color: "rgba(255,255,255,0.6)",
               lineHeight: "1.7", margin: "0 0 24px 0"
             }}>
-              Por cada envio ganas puntos y desbloqueas NFTs exclusivos. El envio numero 10 siempre es gratis!
+              Por cada envio ganas puntos y desbloqueas NFTs exclusivos. Tu badge NFT reduce tu comision automaticamente — desde $1.00 fijo para los Fundadores y Leyendas.
             </p>
             <div style={{
               display: "grid", gridTemplateColumns: "1fr 1fr",
@@ -874,6 +1020,11 @@ export default function Landing({ onEntrar, colors }) {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Programa de lealtad NFT */}
+        <div style={{marginTop: "40px"}}>
+          <SeccionLealtad colors={colors} isMobile={isMobile} />
         </div>
 
         {/* Comparativa */}
@@ -989,7 +1140,7 @@ export default function Landing({ onEntrar, colors }) {
               {
                 nombre: "Carlos M.",
                 usuario: "@carlos_mx",
-                texto: "Llevo 6 meses usando Axora para mandar dinero a mi mama. Ahorro casi $90 dolares al año vs Western Union. Increible!",
+                texto: "Llevo 6 meses usando Axora para mandar dinero a mi mama. Ahorro casi $78 dolares al año vs Western Union. Increible!",
                 estrellas: 5
               },
               {
@@ -1011,8 +1162,8 @@ export default function Landing({ onEntrar, colors }) {
                 border: "1px solid rgba(255,255,255,0.08)"
               }}>
                 <div style={{display: "flex", gap: "4px", marginBottom: "16px"}}>
-                  {Array(t.estrellas).fill("⭐").map((s, i) => (
-                    <span key={i} style={{fontSize: "14px"}}>{s}</span>
+                  {Array(t.estrellas).fill(null).map((_, i) => (
+                    <Icon key={i} nombre="star" size={14} color="F59E0B" />
                   ))}
                 </div>
                 <p style={{
@@ -1230,8 +1381,8 @@ export default function Landing({ onEntrar, colors }) {
               backgroundColor: "#000"
             }}>
               <iframe
-                src="AQUI_VA_TU_LINK"
-                title="Axora Demo"
+                src="https://www.youtube.com/embed/gWATNfH93Mw?autoplay=1"
+                title="Axora Demo — Ethereum México Hackathon 2026"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
                 allowFullScreen
                 style={{

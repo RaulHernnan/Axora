@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { getRewards, saveRewards, NFT_BADGES, RECOMPENSAS, calcularNivel } from "../lib/rewards";
+import { mintBadge, getNFTOnchainData } from "../lib/rareMint";
 import useIsMobile from "../lib/useIsMobile";
 import Icon from "./Icon";
 
@@ -10,9 +11,16 @@ export default function Recompensas({ colors, usuario }) {
   const [tab, setTab] = useState("resumen");
   const [canjeando, setCanjeando] = useState(null);
   const [mensajeCanje, setMensajeCanje] = useState("");
+  const [canjeExitoso, setCanjeExitoso] = useState(false);
+  const [minteando, setMinteando] = useState(null);
+  const [nftOnchain, setNftOnchain] = useState({});
+  const [confirmarMinteo, setConfirmarMinteo] = useState(null);
 
   useEffect(() => {
-    if (usuario) setRewards(getRewards(usuario));
+    if (usuario) {
+      setRewards(getRewards(usuario));
+      setNftOnchain(getNFTOnchainData(usuario.wallet));
+    }
   }, [usuario]);
 
   if (!rewards) return null;
@@ -21,6 +29,29 @@ export default function Recompensas({ colors, usuario }) {
   const progreso = nivel.siguiente
     ? Math.min((rewards.puntos / nivel.siguiente) * 100, 100)
     : 100;
+
+  const handleMintearNFT = async (badge) => {
+    if (!usuario?.wallet) {
+      setMensajeCanje("Conecta tu wallet para mintear el NFT en blockchain.");
+      setTimeout(() => setMensajeCanje(""), 4000);
+      return;
+    }
+    setMinteando(badge.id);
+    const resultado = await mintBadge(usuario.wallet, badge.id);
+    setMinteando(null);
+    if (resultado.ok) {
+      setNftOnchain(prev => ({
+        ...prev,
+        [badge.id]: { txHash: resultado.txHash, explorerUrl: resultado.explorerUrl, tokenId: resultado.tokenId },
+      }));
+      setCanjeExitoso(true);
+      setMensajeCanje(`NFT "${badge.nombre}" minteado en Sepolia! Token #${resultado.tokenId}`);
+    } else {
+      setCanjeExitoso(false);
+      setMensajeCanje(`Error al mintear: ${resultado.error}`);
+    }
+    setTimeout(() => { setMensajeCanje(""); setCanjeExitoso(false); }, 7000);
+  };
 
   const canjearNFT = async (badge) => {
     if (!rewards.nftsDesbloqueados.includes(badge.id)) return;
@@ -45,8 +76,9 @@ export default function Recompensas({ colors, usuario }) {
     saveRewards(usuario, nuevosRewards);
     setRewards(nuevosRewards);
     setCanjeando(null);
-    setMensajeCanje(`✅ Canjeaste "${badge.nombre}" por ${badge.puntosAlCanjear} puntos! Desbloquéalo de nuevo completando los requisitos.`);
-    setTimeout(() => setMensajeCanje(""), 6000);
+    setCanjeExitoso(true);
+    setMensajeCanje(`Canjeaste "${badge.nombre}" por ${badge.puntosAlCanjear} puntos! Desbloquéalo de nuevo completando los requisitos.`);
+    setTimeout(() => { setMensajeCanje(""); setCanjeExitoso(false); }, 6000);
   };
 
   const canjearRecompensa = async (recompensa) => {
@@ -93,8 +125,9 @@ export default function Recompensas({ colors, usuario }) {
     saveRewards(usuario, nuevosRewards);
     setRewards(nuevosRewards);
     setCanjeando(null);
-    setMensajeCanje(`✅ ${recompensa.nombre} activado! Se aplicara en tu proximo envio.`);
-    setTimeout(() => setMensajeCanje(""), 5000);
+    setCanjeExitoso(true);
+    setMensajeCanje(`${recompensa.nombre} activado! Se aplicara en tu proximo envio.`);
+    setTimeout(() => { setMensajeCanje(""); setCanjeExitoso(false); }, 5000);
   };
 
   return (
@@ -112,12 +145,17 @@ export default function Recompensas({ colors, usuario }) {
       {/* Mensaje de canje */}
       {mensajeCanje && (
         <div style={{
-          backgroundColor: mensajeCanje.includes("✅") ? "#f0fdf4" : "#fef2f2",
-          border: `2px solid ${mensajeCanje.includes("✅") ? "#16a34a" : "#fecaca"}`,
+          backgroundColor: canjeExitoso ? "#f0fdf4" : "#fef2f2",
+          border: `2px solid ${canjeExitoso ? "#16a34a" : "#fecaca"}`,
           borderRadius: "12px", padding: "14px 18px", marginBottom: "24px",
           fontSize: "14px", fontWeight: "700",
-          color: mensajeCanje.includes("✅") ? "#15803d" : "#dc2626"
+          color: canjeExitoso ? "#15803d" : "#dc2626",
+          display: "flex", alignItems: "center", gap: "8px"
         }}>
+          {canjeExitoso
+            ? <Icon nombre="checkmark" size={18} color="15803d" />
+            : <Icon nombre="error" size={18} color="dc2626" />
+          }
           {mensajeCanje}
         </div>
       )}
@@ -148,7 +186,7 @@ export default function Recompensas({ colors, usuario }) {
                 borderRadius: "16px", padding: "12px 20px",
                 border: "1px solid rgba(255,255,255,0.2)"
               }}>
-                <div style={{fontSize: "28px", marginBottom: "4px"}}>{nivel.icono}</div>
+                <div style={{marginBottom: "4px"}}><Icon nombre={nivel.icono} size={28} color="FFFFFF" /></div>
                 <div style={{fontSize: "16px", fontWeight: "800"}}>{nivel.nivel}</div>
                 <div style={{fontSize: "11px", color: "rgba(255,255,255,0.7)"}}>Tu nivel</div>
               </div>
@@ -195,7 +233,7 @@ export default function Recompensas({ colors, usuario }) {
               borderRadius: "12px", padding: "12px 16px",
               display: "flex", alignItems: "center", gap: "10px"
             }}>
-              <span style={{fontSize: "24px"}}>🎁</span>
+              <Icon nombre="gift" size={28} color="FFFFFF" />
               <div>
                 <div style={{fontSize: "14px", fontWeight: "800"}}>Tienes un envio GRATIS disponible!</div>
                 <div style={{fontSize: "12px", color: "rgba(255,255,255,0.7)"}}>Tu proximo envio no tendra comision</div>
@@ -204,7 +242,9 @@ export default function Recompensas({ colors, usuario }) {
           )}
         </div>
 
-        <div style={{position: "absolute", right: "-20px", top: "-20px", fontSize: "160px", opacity: 0.05}}>⭐</div>
+        <div style={{position: "absolute", right: "-20px", top: "-20px", opacity: 0.05, pointerEvents: "none"}}>
+          <Icon nombre="star" size={140} color="FFFFFF" />
+        </div>
       </div>
 
       {/* Tabs */}
@@ -214,19 +254,23 @@ export default function Recompensas({ colors, usuario }) {
       }}>
         {[
           {id: "resumen", label: "Resumen", icono: "bar-chart"},
-          {id: "nfts", label: "Mis NFTs", icono: "trophy"},
+          {id: "nfts", label: "NFTs", icono: "trophy"},
           {id: "canjear", label: "Canjear", icono: "gift"},
           {id: "historial", label: "Historial", icono: "time"}
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
-            flex: 1, padding: "11px", borderRadius: "11px", border: "none",
-            fontSize: "13px", fontWeight: "700", cursor: "pointer", transition: "all 0.2s",
+            flex: 1, padding: isMobile ? "8px 2px" : "11px",
+            borderRadius: "11px", border: "none",
+            fontSize: isMobile ? "10px" : "13px",
+            fontWeight: "700", cursor: "pointer", transition: "all 0.2s",
             backgroundColor: tab === t.id ? "white" : "transparent",
             color: tab === t.id ? colors.principal : colors.textoSec,
             boxShadow: tab === t.id ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: "6px"
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexDirection: isMobile ? "column" : "row",
+            gap: isMobile ? "3px" : "6px"
           }}>
-            <Icon nombre={t.icono} size={16} color={tab === t.id ? "294C74" : "8E8578"} />
+            <Icon nombre={t.icono} size={isMobile ? 18 : 16} color={tab === t.id ? "294C74" : "8E8578"} />
             {t.label}
           </button>
         ))}
@@ -270,7 +314,7 @@ export default function Recompensas({ colors, usuario }) {
               background: `linear-gradient(135deg, ${colors.secundario}, #D96524)`,
               borderRadius: "20px", padding: "28px", color: "white", marginBottom: "16px"
             }}>
-              <div style={{fontSize: "40px", marginBottom: "12px"}}>🎁</div>
+              <div style={{marginBottom: "12px"}}><Icon nombre="gift" size={40} color="FFFFFF" /></div>
               <h3 style={{fontSize: "20px", fontWeight: "900", margin: "0 0 8px 0"}}>
                 Tu envio #10 es GRATIS
               </h3>
@@ -317,13 +361,13 @@ export default function Recompensas({ colors, usuario }) {
       {/* TAB: NFTs */}
       {tab === "nfts" && (
         <div>
-          <div style={{display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)", gap: "20px"}}>
+          <div style={{display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: isMobile ? "12px" : "20px"}}>
             {NFT_BADGES.map(badge => {
               const desbloqueado = rewards.nftsDesbloqueados.includes(badge.id);
               return (
                 <div key={badge.id} style={{
                   backgroundColor: "white",
-                  borderRadius: "20px", padding: "24px",
+                  borderRadius: "16px", padding: isMobile ? "16px" : "24px",
                   textAlign: "center",
                   boxShadow: desbloqueado ? `0 4px 20px ${badge.color}30` : "0 2px 8px rgba(0,0,0,0.05)",
                   border: desbloqueado ? `2px solid ${badge.color}` : `2px solid ${colors.apoyo}40`,
@@ -355,7 +399,7 @@ export default function Recompensas({ colors, usuario }) {
                       <img src={badge.imagen} alt={badge.nombre}
                         style={{width: "100%", height: "100%", objectFit: "cover"}} />
                     ) : (
-                      <span style={{fontSize: "32px"}}>🔒</span>
+                      <Icon nombre="lock-2" size={32} color="C0B9AB" />
                     )}
                   </div>
 
@@ -376,28 +420,125 @@ export default function Recompensas({ colors, usuario }) {
                     borderRadius: "8px", padding: "4px 10px",
                     fontSize: "12px", fontWeight: "700",
                     color: colors.principal, marginBottom: "12px",
-                    display: "inline-block"
+                    display: "inline-flex", alignItems: "center", gap: "4px"
                   }}>
-                    ⭐ Vale {badge.puntosAlCanjear} pts
+                    <Icon nombre="star" size={13} color="294C74" />
+                    Vale {badge.puntosAlCanjear} pts
                   </div>
 
-                  {/* Requisito o boton canjear */}
+                  {/* Requisito o botones */}
                   {desbloqueado ? (
-                    <button
-                      onClick={() => canjearNFT(badge)}
-                      disabled={canjeando === badge.id}
-                      style={{
-                        width: "100%",
-                        backgroundColor: canjeando === badge.id ? colors.apoyo : badge.color,
-                        color: "white", border: "none",
-                        padding: "10px", borderRadius: "10px",
-                        fontSize: "13px", fontWeight: "700",
-                        cursor: canjeando === badge.id ? "not-allowed" : "pointer",
-                        transition: "all 0.2s"
-                      }}
-                    >
-                      {canjeando === badge.id ? "⏳ Canjeando..." : `Canjear por ${badge.puntosAlCanjear} pts`}
-                    </button>
+                    <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+
+                      {/* NFT ya minteado on-chain → solo Etherscan, sin canjear */}
+                      {nftOnchain[badge.id] ? (
+                        <>
+                          <a
+                            href={nftOnchain[badge.id].explorerUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "block", width: "100%", textAlign: "center",
+                              backgroundColor: "#f0fdf4", border: "2px solid #16a34a",
+                              color: "#15803d", borderRadius: "10px", padding: "8px",
+                              fontSize: "12px", fontWeight: "700", textDecoration: "none"
+                            }}
+                          >
+                            <Icon nombre="checkmark" size={13} color="15803d" style={{marginRight:"4px",verticalAlign:"middle"}} />
+                            On-chain · Token #{nftOnchain[badge.id].tokenId} · Ver en Etherscan ↗
+                          </a>
+                          <div style={{
+                            backgroundColor: "#fef9ec", border: "1px solid #f59e0b",
+                            borderRadius: "8px", padding: "7px 10px",
+                            fontSize: "11px", color: "#92400e", textAlign: "center"
+                          }}>
+                            <Icon nombre="lock-2" size={13} color="92400e" /> NFT minteado — no disponible para canjear
+                          </div>
+                        </>
+                      ) : confirmarMinteo === badge.id ? (
+                        /* Pantalla de confirmación de minteo */
+                        <div style={{
+                          backgroundColor: "#fff7ed", border: "2px solid #f97316",
+                          borderRadius: "12px", padding: "12px", textAlign: "center"
+                        }}>
+                          <div style={{marginBottom: "6px"}}><Icon nombre="error" size={20} color="f97316" /></div>
+                          <p style={{
+                            fontSize: "12px", fontWeight: "700", color: "#9a3412",
+                            margin: "0 0 4px 0", lineHeight: "1.4"
+                          }}>
+                            Acción irreversible
+                          </p>
+                          <p style={{
+                            fontSize: "11px", color: "#c2410c",
+                            margin: "0 0 12px 0", lineHeight: "1.5"
+                          }}>
+                            Una vez minteado en blockchain ya no podrás canjear este NFT por {badge.puntosAlCanjear} pts. ¿Continuar?
+                          </p>
+                          <div style={{display: "flex", gap: "8px"}}>
+                            <button
+                              onClick={() => setConfirmarMinteo(null)}
+                              style={{
+                                flex: 1, padding: "8px", borderRadius: "8px",
+                                border: `1px solid ${colors.apoyo}`, backgroundColor: "white",
+                                fontSize: "12px", fontWeight: "700",
+                                color: colors.textoSec, cursor: "pointer"
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              onClick={() => { setConfirmarMinteo(null); handleMintearNFT(badge); }}
+                              disabled={minteando === badge.id}
+                              style={{
+                                flex: 1, padding: "8px", borderRadius: "8px",
+                                border: "none", backgroundColor: "#1a1a2e",
+                                fontSize: "12px", fontWeight: "700",
+                                color: "white", cursor: "pointer"
+                              }}
+                            >
+                              <Icon nombre="chain" size={13} color="FFFFFF" /> Confirmar mint
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Estado normal: botones mintear + canjear */
+                        <>
+                          <button
+                            onClick={() => setConfirmarMinteo(badge.id)}
+                            disabled={minteando === badge.id}
+                            style={{
+                              width: "100%",
+                              backgroundColor: minteando === badge.id ? colors.apoyo : "#1a1a2e",
+                              color: "white", border: "none",
+                              padding: "8px", borderRadius: "10px",
+                              fontSize: "12px", fontWeight: "700",
+                              cursor: minteando === badge.id ? "not-allowed" : "pointer",
+                              transition: "all 0.2s"
+                            }}
+                          >
+                            {minteando === badge.id
+                              ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"}}><Icon nombre="time" size={15} color="FFFFFF" /> Minteando...</span>
+                              : <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"}}><Icon nombre="chain" size={15} color="FFFFFF" /> Mintear NFT real</span>
+                            }
+                          </button>
+                          <button
+                            onClick={() => canjearNFT(badge)}
+                            disabled={canjeando === badge.id}
+                            style={{
+                              width: "100%",
+                              backgroundColor: canjeando === badge.id ? colors.apoyo : badge.color,
+                              color: "white", border: "none",
+                              padding: "10px", borderRadius: "10px",
+                              fontSize: "13px", fontWeight: "700",
+                              cursor: canjeando === badge.id ? "not-allowed" : "pointer",
+                              transition: "all 0.2s"
+                            }}
+                          >
+                            {canjeando === badge.id ? "Canjeando..." : `Canjear por ${badge.puntosAlCanjear} pts`}
+                          </button>
+                        </>
+                      )}
+                    </div>
                   ) : (
                     <div style={{
                       backgroundColor: colors.contenedor,
@@ -405,7 +546,9 @@ export default function Recompensas({ colors, usuario }) {
                       fontSize: "11px", fontWeight: "600",
                       color: colors.textoSec
                     }}>
-                      🔒 {badge.requisito}
+                      <span style={{display:"flex",alignItems:"center",gap:"5px"}}>
+                        <Icon nombre="lock-2" size={13} color="8E8578" />{badge.requisito}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -422,7 +565,9 @@ export default function Recompensas({ colors, usuario }) {
           {rewards.cuponesActivos && rewards.cuponesActivos.filter(c => !c.usado).length > 0 && (
             <div style={{marginBottom: "24px"}}>
               <h3 style={{fontSize: "16px", fontWeight: "800", color: colors.principal, margin: "0 0 14px 0"}}>
-                🎫 Tus cupones activos:
+                <span style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                  <Icon nombre="ticket" size={18} color="294C74" />Tus cupones activos:
+                </span>
               </h3>
               <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
                 {rewards.cuponesActivos.filter(c => !c.usado).map((cupon, i) => (
@@ -466,7 +611,6 @@ export default function Recompensas({ colors, usuario }) {
           <div style={{display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: "20px"}}>
           {RECOMPENSAS.map(recompensa => {
             const puedesCanjear = rewards.puntos >= recompensa.puntos;
-            const yaCanjeado = rewards.recompensasCanjeadas.some(r => r.id === recompensa.id);
             return (
               <div key={recompensa.id} style={{
                 backgroundColor: "white", borderRadius: "20px", padding: "24px",
@@ -499,7 +643,9 @@ export default function Recompensas({ colors, usuario }) {
                     borderRadius: "10px", padding: "6px 14px",
                     fontSize: "14px", fontWeight: "800", color: colors.principal
                   }}>
-                    ⭐ {recompensa.puntos.toLocaleString()} pts
+                    <span style={{display:"flex",alignItems:"center",gap:"4px"}}>
+                      <Icon nombre="star" size={14} color="294C74" />{recompensa.puntos.toLocaleString()} pts
+                    </span>
                   </div>
                   <button
                     onClick={() => canjearRecompensa(recompensa)}
@@ -513,7 +659,7 @@ export default function Recompensas({ colors, usuario }) {
                       boxShadow: puedesCanjear ? "0 4px 12px rgba(241,118,51,0.3)" : "none"
                     }}
                   >
-                    {canjeando === recompensa.id ? "⏳..." : puedesCanjear ? "Canjear" : "Puntos insuf."}
+                    {canjeando === recompensa.id ? "..." : puedesCanjear ? "Canjear" : "Puntos insuf."}
                   </button>
                 </div>
 
@@ -537,7 +683,7 @@ export default function Recompensas({ colors, usuario }) {
           </h3>
           {rewards.historial.length === 0 ? (
             <div style={{textAlign: "center", padding: "40px", color: colors.textoSec}}>
-              <div style={{fontSize: "40px", marginBottom: "12px"}}>📋</div>
+              <div style={{marginBottom: "12px"}}><Icon nombre="clipboard" size={40} color="8E8578" /></div>
               <p>Aun no tienes actividad. Realiza tu primer envio!</p>
             </div>
           ) : (
@@ -551,9 +697,12 @@ export default function Recompensas({ colors, usuario }) {
                   width: "40px", height: "40px", borderRadius: "12px",
                   backgroundColor: item.puntos > 0 ? "#f0fdf4" : "#fef2f2",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "18px", flexShrink: 0
+                  flexShrink: 0
                 }}>
-                  {item.puntos > 0 ? "⭐" : "🔄"}
+                  {item.puntos > 0
+                    ? <Icon nombre="star" size={20} color="16a34a" />
+                    : <Icon nombre="refresh" size={20} color="dc2626" />
+                  }
                 </div>
                 <div style={{flex: 1}}>
                   <div style={{fontSize: "13px", fontWeight: "600", color: colors.principal}}>

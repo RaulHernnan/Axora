@@ -16,6 +16,14 @@ const DIAS = Array.from({ length: 28 }, (_, i) => i + 1);
 export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
   const isMobile = useIsMobile();
   const [pagos, setPagos] = useState([]);
+  const [tcBase, setTcBase] = useState(17.85);
+
+  useEffect(() => {
+    fetch("/api/tipo-cambio")
+      .then(r => r.json())
+      .then(d => setTcBase(d.tc))
+      .catch(() => {});
+  }, []);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState(null);
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(null);
@@ -160,7 +168,7 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
     .filter(p => p.activo)
     .reduce((sum, p) => sum + parseFloat(p.montoPesos || 0), 0);
 
-  const totalUSD = (totalMensual / 17.85).toFixed(2);
+  const totalUSD = (totalMensual / tcBase).toFixed(2);
 
   return (
     <div>
@@ -192,7 +200,7 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
           borderRadius: "12px", padding: "14px 18px", marginBottom: "24px",
           display: "flex", alignItems: "center", gap: "10px"
         }}>
-          <span style={{fontSize: "20px"}}>✅</span>
+          <Icon nombre="checkmark" size={20} color="15803d" />
           <span style={{fontSize: "14px", fontWeight: "600", color: "#15803d"}}>{exito}</span>
         </div>
       )}
@@ -247,17 +255,18 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
         <div style={{display: "flex", flexDirection: "column", gap: "16px", marginBottom: mostrarForm ? "32px" : "0"}}>
           {pagos.map(pago => (
             <div key={pago.id} style={{
-              backgroundColor: "white", borderRadius: "16px", padding: "24px",
+              backgroundColor: "white", borderRadius: "16px", padding: isMobile ? "16px" : "24px",
               boxShadow: "0 2px 12px rgba(41,76,116,0.06)",
               border: `1px solid ${pago.activo ? colors.apoyo + "60" : colors.apoyo + "30"}`,
               opacity: pago.activo ? 1 : 0.6,
               transition: "all 0.2s"
             }}>
-              <div style={{display: "flex", alignItems: "center", gap: "16px"}}>
+              {/* Fila superior: icono + info + monto */}
+              <div style={{display: "flex", alignItems: "flex-start", gap: "12px"}}>
 
                 {/* Icono servicio */}
                 <div style={{
-                  width: "52px", height: "52px", borderRadius: "14px",
+                  width: "48px", height: "48px", borderRadius: "14px",
                   backgroundColor: pago.colorServicio + "20",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   flexShrink: 0,
@@ -271,92 +280,95 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
                       gas: {nombre: "fire-element", color: "EF4444"}
                     };
                     const icono = iconoMap[pago.servicio] || {nombre: "recurring-appointment", color: "294C74"};
-                    return <Icon nombre={icono.nombre} size={26} color={icono.color} />;
+                    return <Icon nombre={icono.nombre} size={24} color={icono.color} />;
                   })()}
                 </div>
 
                 {/* Info */}
-                <div style={{flex: 1}}>
-                  <div style={{display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px"}}>
-                    <h3 style={{fontSize: "16px", fontWeight: "800", color: colors.principal, margin: 0}}>
+                <div style={{flex: 1, minWidth: 0}}>
+                  <div style={{display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap"}}>
+                    <h3 style={{fontSize: "15px", fontWeight: "800", color: colors.principal, margin: 0}}>
                       {pago.nombreServicio}
                     </h3>
                     <span style={{
                       backgroundColor: pago.activo ? "#f0fdf4" : "#f9fafb",
                       color: pago.activo ? "#16a34a" : colors.textoSec,
                       border: `1px solid ${pago.activo ? "#bbf7d0" : colors.apoyo}`,
-                      padding: "2px 10px", borderRadius: "20px",
-                      fontSize: "11px", fontWeight: "700"
+                      padding: "2px 8px", borderRadius: "20px",
+                      fontSize: "10px", fontWeight: "700", whiteSpace: "nowrap"
                     }}>
                       {pago.activo ? "✓ ACTIVO" : "PAUSADO"}
                     </span>
                   </div>
-                  <div style={{fontSize: "13px", color: colors.textoSec, display: "flex", gap: "16px", flexWrap: "wrap"}}>
+                  <div style={{fontSize: "12px", color: colors.textoSec, display: "flex", flexDirection: "column", gap: "3px"}}>
                     <span style={{display:"flex",alignItems:"center",gap:"4px"}}>
-                      <Icon nombre="user" size={14} color="8E8578" /> {pago.nombreBeneficiario}
+                      <Icon nombre="user" size={12} color="8E8578" /> {pago.nombreBeneficiario}
                     </span>
                     <span style={{display:"flex",alignItems:"center",gap:"4px"}}>
-                      <Icon nombre="bank-building" size={14} color="8E8578" /> {pago.banco} ****{pago.clabe.slice(-4)}
+                      <Icon nombre="bank-building" size={12} color="8E8578" /> {pago.banco} ****{pago.clabe.slice(-4)}
                     </span>
                     <span style={{display:"flex",alignItems:"center",gap:"4px"}}>
-                      <Icon nombre="calendar" size={14} color="8E8578" /> Día {pago.diaPago} de cada mes
+                      <Icon nombre="calendar" size={12} color="8E8578" /> Día {pago.diaPago} de cada mes
                     </span>
                   </div>
                   {pago.notas && (
                     <div style={{fontSize: "12px", color: colors.textoSec, marginTop: "4px", fontStyle: "italic"}}>
-                      📝 {pago.notas}
+                      {pago.notas}
                     </div>
                   )}
                 </div>
 
                 {/* Monto */}
                 <div style={{textAlign: "right", flexShrink: 0}}>
-                  <div style={{fontSize: "22px", fontWeight: "900", color: colors.principal}}>
+                  <div style={{fontSize: "20px", fontWeight: "900", color: colors.principal}}>
                     ${parseFloat(pago.montoPesos).toLocaleString("es-MX")}
                   </div>
-                  <div style={{fontSize: "12px", color: colors.textoSec}}>MXN/mes</div>
-                  <div style={{fontSize: "11px", color: colors.textoSec, marginTop: "2px"}}>
-                    ~${(parseFloat(pago.montoPesos) / 17.85).toFixed(2)} USD
+                  <div style={{fontSize: "11px", color: colors.textoSec}}>MXN/mes</div>
+                  <div style={{fontSize: "10px", color: colors.textoSec, marginTop: "2px"}}>
+                    ~${(parseFloat(pago.montoPesos) / tcBase).toFixed(2)} USD
                   </div>
                 </div>
+              </div>
 
-                {/* Acciones */}
-                <div style={{display: "flex", flexDirection: "column", gap: "6px", flexShrink: 0}}>
-                  <button onClick={() => toggleActivo(pago.id)} style={{
-                    backgroundColor: pago.activo ? colors.apoyo + "30" : "#f0fdf4",
-                    color: pago.activo ? colors.textoSec : "#16a34a",
-                    border: "none", padding: "6px 12px", borderRadius: "8px",
-                    fontSize: "12px", fontWeight: "700", cursor: "pointer"
-                  }}>
-                    {pago.activo ? "Pausar" : "Activar"}
-                  </button>
-                  <button onClick={() => abrirFormEditar(pago)} style={{
-                    backgroundColor: `${colors.principal}10`, color: colors.principal,
-                    border: "none", padding: "6px 12px", borderRadius: "8px",
-                    fontSize: "12px", fontWeight: "700", cursor: "pointer"
-                  }}>
-                    Editar
-                  </button>
-                  <button onClick={() => setConfirmandoEliminar(pago.id)} style={{
-                    backgroundColor: "#fef2f2", color: "#dc2626",
-                    border: "none", padding: "6px 12px", borderRadius: "8px",
-                    fontSize: "12px", fontWeight: "700", cursor: "pointer"
-                  }}>
-                    Eliminar
-                  </button>
-                </div>
+              {/* Fila acciones — siempre en horizontal debajo */}
+              <div style={{display: "flex", gap: "8px", marginTop: "12px"}}>
+                <button onClick={() => toggleActivo(pago.id)} style={{
+                  flex: 1,
+                  backgroundColor: pago.activo ? colors.apoyo + "30" : "#f0fdf4",
+                  color: pago.activo ? colors.textoSec : "#16a34a",
+                  border: "none", padding: "8px 4px", borderRadius: "8px",
+                  fontSize: "12px", fontWeight: "700", cursor: "pointer"
+                }}>
+                  {pago.activo ? "Pausar" : "Activar"}
+                </button>
+                <button onClick={() => abrirFormEditar(pago)} style={{
+                  flex: 1,
+                  backgroundColor: `${colors.principal}10`, color: colors.principal,
+                  border: "none", padding: "8px 4px", borderRadius: "8px",
+                  fontSize: "12px", fontWeight: "700", cursor: "pointer"
+                }}>
+                  Editar
+                </button>
+                <button onClick={() => setConfirmandoEliminar(pago.id)} style={{
+                  flex: 1,
+                  backgroundColor: "#fef2f2", color: "#dc2626",
+                  border: "none", padding: "8px 4px", borderRadius: "8px",
+                  fontSize: "12px", fontWeight: "700", cursor: "pointer"
+                }}>
+                  Eliminar
+                </button>
               </div>
 
               {/* Hash blockchain */}
               <div style={{
                 marginTop: "12px", paddingTop: "12px",
                 borderTop: `1px solid ${colors.apoyo}30`,
-                display: "flex", alignItems: "center", gap: "8px"
+                display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap"
               }}>
-                <span style={{fontSize: "12px"}}>🔗</span>
-                <span style={{fontSize: "11px", color: colors.textoSec}}>Registrado en blockchain:</span>
-                <span style={{fontSize: "11px", fontFamily: "monospace", color: colors.principal}}>
-                  {pago.hashBlockchain.slice(0, 20)}...
+                <Icon nombre="chain" size={12} color="8E8578" />
+                <span style={{fontSize: "11px", color: colors.textoSec, whiteSpace: "nowrap"}}>Registrado en blockchain:</span>
+                <span style={{fontSize: "11px", fontFamily: "monospace", color: colors.principal, wordBreak: "break-all"}}>
+                  {pago.hashBlockchain.slice(0, isMobile ? 14 : 20)}...
                 </span>
               </div>
 
@@ -365,23 +377,22 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
                 <div style={{
                   marginTop: "12px", backgroundColor: "#fef2f2",
                   border: "1px solid #fecaca", borderRadius: "10px",
-                  padding: "12px 16px", display: "flex",
-                  alignItems: "center", justifyContent: "space-between", gap: "12px"
+                  padding: "12px 14px"
                 }}>
-                  <span style={{fontSize: "13px", color: "#dc2626", fontWeight: "600"}}>
-                    ⚠️ Estas seguro que quieres eliminar este pago?
-                  </span>
+                  <div style={{fontSize: "13px", color: "#dc2626", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px"}}>
+                    <Icon nombre="error" size={14} color="dc2626" /> Estas seguro que quieres eliminar este pago?
+                  </div>
                   <div style={{display: "flex", gap: "8px"}}>
                     <button onClick={() => setConfirmandoEliminar(null)} style={{
-                      backgroundColor: "white", color: colors.textoSec,
-                      border: `1px solid ${colors.apoyo}`, padding: "6px 14px",
+                      flex: 1, backgroundColor: "white", color: colors.textoSec,
+                      border: `1px solid ${colors.apoyo}`, padding: "8px",
                       borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer"
                     }}>
                       Cancelar
                     </button>
                     <button onClick={() => eliminarPago(pago.id)} style={{
-                      backgroundColor: "#dc2626", color: "white", border: "none",
-                      padding: "6px 14px", borderRadius: "8px",
+                      flex: 1, backgroundColor: "#dc2626", color: "white", border: "none",
+                      padding: "8px", borderRadius: "8px",
                       fontSize: "12px", fontWeight: "700", cursor: "pointer"
                     }}>
                       Si, eliminar
@@ -474,7 +485,7 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
               </div>
               {form.montoPesos && (
                 <div style={{fontSize: "11px", color: colors.textoSec, marginTop: "4px"}}>
-                  ≈ ${(parseFloat(form.montoPesos) / 17.85).toFixed(2)} USD
+                  ≈ ${(parseFloat(form.montoPesos) / tcBase).toFixed(2)} USD
                 </div>
               )}
             </div>
@@ -505,8 +516,8 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
               border: `1px solid ${colors.secundario}30`,
               borderRadius: "12px", padding: "16px", marginBottom: "24px"
             }}>
-              <div style={{fontSize: "13px", fontWeight: "700", color: colors.principal, marginBottom: "8px"}}>
-                📋 Resumen del pago:
+              <div style={{fontSize: "13px", fontWeight: "700", color: colors.principal, marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px"}}>
+                <Icon nombre="clipboard" size={14} color="294C74" /> Resumen del pago:
               </div>
               <div style={{fontSize: "13px", color: colors.textoSec}}>
                 Cada mes el <strong>día {form.diaPago}</strong>, Axora pagará automáticamente{" "}
@@ -525,15 +536,15 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
             marginBottom: "24px",
             display: "flex", gap: "10px", alignItems: "flex-start"
           }}>
-            <span style={{fontSize: "18px"}}>🔗</span>
+            <Icon nombre="chain" size={18} color="294C74" />
             <p style={{fontSize: "12px", color: colors.textoSec, margin: 0, lineHeight: "1.6"}}>
               Este pago quedara registrado en blockchain de forma permanente. Axora ejecutara el pago automaticamente cada mes en la fecha indicada.
             </p>
           </div>
 
           {error && (
-            <div style={{backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px", marginBottom: "16px", fontSize: "13px", color: "#dc2626"}}>
-              ⚠️ {error}
+            <div style={{backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px", marginBottom: "16px", fontSize: "13px", color: "#dc2626", display: "flex", alignItems: "center", gap: "8px"}}>
+              <Icon nombre="error" size={15} color="dc2626" /> {error}
             </div>
           )}
 
@@ -553,7 +564,12 @@ export default function PagosAutomaticos({ colors, usuario, onPuntos }) {
               cursor: guardando ? "not-allowed" : "pointer",
               boxShadow: "0 4px 12px rgba(241,118,51,0.3)"
             }}>
-              {guardando ? "⏳ Registrando en blockchain..." : editando ? "✅ Guardar cambios" : "🔗 Configurar pago automatico"}
+              {guardando
+                ? <><Icon nombre="time" size={16} color="FFFFFF" /> <span>Registrando en blockchain...</span></>
+                : editando
+                  ? <><Icon nombre="checkmark" size={16} color="FFFFFF" /> <span>Guardar cambios</span></>
+                  : <><Icon nombre="chain" size={16} color="FFFFFF" /> <span>Configurar pago automatico</span></>
+              }
             </button>
           </div>
         </div>

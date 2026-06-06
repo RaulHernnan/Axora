@@ -8,7 +8,15 @@ export const TIPOS_NOTIF = {
 export const getNotificaciones = (usuario) => {
   const key = `axora_notifs_${usuario?.email || usuario?.wallet}`;
   const saved = localStorage.getItem(key);
-  return saved ? JSON.parse(saved) : [];
+  if (!saved) return [];
+  const notifs = JSON.parse(saved);
+  // Deduplicar por id en caso de que haya duplicados guardados
+  const seen = new Set();
+  return notifs.filter(n => {
+    if (seen.has(n.id)) return false;
+    seen.add(n.id);
+    return true;
+  });
 };
 
 export const saveNotificaciones = (usuario, notifs) => {
@@ -19,7 +27,7 @@ export const saveNotificaciones = (usuario, notifs) => {
 export const agregarNotificacion = (usuario, tipo, titulo, mensaje, icono = "bell") => {
   const notifs = getNotificaciones(usuario);
   const nueva = {
-    id: Date.now().toString(),
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     tipo, titulo, mensaje, icono,
     leida: false,
     fecha: new Date().toLocaleString("es-MX"),

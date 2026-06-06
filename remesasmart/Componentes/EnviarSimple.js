@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useIsMobile from "../lib/useIsMobile";
 import { ethers } from "ethers";
 import { CONTRATO_REMESAS, ABI_REMESAS } from "../lib/contrato";
@@ -23,13 +23,70 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
   const [txHash, setTxHash] = useState("");
   const [error, setError] = useState("");
 
+  const [tcBase, setTcBase] = useState(17.85);
+
+  useEffect(() => {
+    fetch("/api/tipo-cambio")
+      .then(r => r.json())
+      .then(d => setTcBase(d.tc))
+      .catch(() => {});
+  }, []);
+
   const cuponActivo = usuario ? getCuponActivo(usuario) : null;
   const fee = cuponActivo?.tipo === "gratis" ? 0 :
-              cuponActivo?.tipo === "descuento" ? 0.25 : 0.50;
-  const tipoCambio = cuponActivo?.tipo === "vip" ? 18.20 : 17.85;
+              cuponActivo?.tipo === "descuento" ? 0.75 : 1.50;
+  const tipoCambio = cuponActivo?.tipo === "vip" ? tcBase + 0.35 : tcBase;
   const cantidadNum = parseFloat(form.cantidad) || 0;
   const cantidadMXN = ((cantidadNum - fee) * tipoCambio).toFixed(2);
   const ahorroVsWU = (8.00 - fee).toFixed(2);
+
+  const [historialEnvios, setHistorialEnvios] = useState([]);
+  const [mostrarHistorial, setMostrarHistorial] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const mostrarToast = (mensaje, tipo = "success") => {
+    setToast({mensaje, tipo});
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  useEffect(() => {
+    if (usuario) {
+      const key = `axora_historial_${usuario?.email || usuario?.wallet}`;
+      const saved = localStorage.getItem(key);
+      if (saved) setHistorialEnvios(JSON.parse(saved));
+    }
+  }, [usuario]);
+
+  const guardarEnHistorial = (datosEnvio) => {
+    const key = `axora_historial_${usuario?.email || usuario?.wallet}`;
+    const nuevo = {
+      id: Date.now(),
+      nombre: datosEnvio.nombreDestinatario,
+      clabe: datosEnvio.clabe,
+      banco: datosEnvio.banco,
+      cantidadUSD: datosEnvio.cantidadUSD,
+      cantidadMXN: datosEnvio.cantidadMXN,
+      codigoOxxo: datosEnvio.codigoOxxo,
+      txHash: datosEnvio.txHash,
+      fecha: new Date().toLocaleDateString("es-MX"),
+      timestamp: Date.now()
+    };
+    const sinDuplicados = historialEnvios.filter(e => e.clabe !== datosEnvio.clabe);
+    const actualizado = [nuevo, ...sinDuplicados].slice(0, 10);
+    localStorage.setItem(key, JSON.stringify(actualizado));
+    setHistorialEnvios(actualizado);
+  };
+
+  const usarContactoReciente = (contacto) => {
+    setForm(p => ({
+      ...p,
+      nombreDestinatario: contacto.nombre,
+      clabe: contacto.clabe,
+      banco: contacto.banco
+    }));
+    setMostrarHistorial(false);
+    setPaso(2);
+  };
 
   const bancos = [
     "BBVA", "Banamex", "Banorte", "Santander",
@@ -151,6 +208,15 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
             }
           );
         }
+        guardarEnHistorial({
+          nombreDestinatario: form.nombreDestinatario,
+          clabe: form.clabe,
+          banco: form.banco,
+          cantidadUSD: cantidadNum.toFixed(2),
+          cantidadMXN,
+          codigoOxxo,
+          txHash: txHash || ""
+        });
         setPaso(4);
         return;
       }
@@ -242,6 +308,15 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
           }
         );
       }
+      guardarEnHistorial({
+        nombreDestinatario: form.nombreDestinatario,
+        clabe: form.clabe,
+        banco: form.banco,
+        cantidadUSD: cantidadNum.toFixed(2),
+        cantidadMXN,
+        codigoOxxo,
+        txHash: txHash || ""
+      });
       setPaso(4);
 
     } catch (err) {
@@ -529,7 +604,7 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
                   border: "1px solid #fecaca", borderRadius: "8px",
                   padding: "8px 12px", fontSize: "12px", color: "#dc2626", fontWeight: "600"
                 }}>
-                  ⚠️ Monto maximo: $2,000 USD por envio
+                  <Icon nombre="error" size={13} color="dc2626" style={{display:"inline",verticalAlign:"middle",marginRight:"4px"}} /> Monto maximo: $2,000 USD por envio
                 </div>
               )}
             </div>
@@ -564,6 +639,92 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
               Necesitamos los datos bancarios de tu familiar
             </p>
           </div>
+
+          {/* Contactos recientes */}
+          {historialEnvios.length > 0 && (
+            <div style={{marginBottom: "20px"}}>
+              <button
+                onClick={() => setMostrarHistorial(!mostrarHistorial)}
+                style={{
+                  width: "100%", backgroundColor: `${colors.principal}08`,
+                  border: `1px solid ${colors.apoyo}60`,
+                  borderRadius: "12px", padding: "12px 16px",
+                  display: "flex", alignItems: "center",
+                  justifyContent: "space-between",
+                  cursor: "pointer", color: colors.principal,
+                  fontSize: "13px", fontWeight: "700"
+                }}
+              >
+                <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+                  <Icon nombre="conference-call" size={18} color="294C74" />
+                  Usar contacto reciente
+                </div>
+                <span>{mostrarHistorial ? "▲" : "▼"}</span>
+              </button>
+
+              {mostrarHistorial && (
+                <div style={{
+                  backgroundColor: "white", borderRadius: "12px",
+                  border: `1px solid ${colors.apoyo}40`,
+                  marginTop: "8px", overflow: "hidden",
+                  boxShadow: "0 4px 12px rgba(41,76,116,0.08)"
+                }}>
+                  {historialEnvios.slice(0, 5).map((contacto, i) => (
+                    <div key={i} style={{
+                      padding: "12px 16px",
+                      borderBottom: i < Math.min(historialEnvios.length, 5) - 1
+                        ? `1px solid ${colors.apoyo}20` : "none",
+                      display: "flex", alignItems: "center",
+                      justifyContent: "space-between", gap: "8px"
+                    }}>
+                      <div
+                        onClick={() => usarContactoReciente(contacto)}
+                        style={{display: "flex", alignItems: "center", gap: "10px", flex: 1, cursor: "pointer"}}
+                      >
+                        <div style={{
+                          width: "36px", height: "36px", borderRadius: "50%",
+                          backgroundColor: `${colors.secundario}20`,
+                          display: "flex", alignItems: "center",
+                          justifyContent: "center", flexShrink: 0
+                        }}>
+                          <Icon nombre="user" size={18} color="F17633" />
+                        </div>
+                        <div>
+                          <div style={{fontSize: "14px", fontWeight: "700", color: colors.principal}}>
+                            {contacto.nombre}
+                          </div>
+                          <div style={{fontSize: "12px", color: colors.textoSec}}>
+                            {contacto.banco} · ****{contacto.clabe.slice(-4)} · {contacto.fecha}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{display: "flex", gap: "6px", flexShrink: 0}}>
+                        <button onClick={() => usarContactoReciente(contacto)} style={{
+                          backgroundColor: `${colors.secundario}15`,
+                          color: colors.secundario, border: "none",
+                          padding: "6px 12px", borderRadius: "8px",
+                          fontSize: "12px", fontWeight: "700", cursor: "pointer"
+                        }}>Usar</button>
+                        <button onClick={() => {
+                          const key = `axora_historial_${usuario?.email || usuario?.wallet}`;
+                          const actualizado = historialEnvios.filter((_, idx) => idx !== i);
+                          localStorage.setItem(key, JSON.stringify(actualizado));
+                          setHistorialEnvios(actualizado);
+                        }} style={{
+                          backgroundColor: "#fef2f2", color: "#dc2626",
+                          border: "none", padding: "6px 10px",
+                          borderRadius: "8px", fontSize: "12px",
+                          fontWeight: "700", cursor: "pointer"
+                        }}>
+                          <Icon nombre="trash" size={14} color="DC2626" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div style={{display: "flex", flexDirection: "column", gap: "20px"}}>
             <div>
@@ -661,7 +822,7 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
                 </div>
                 <div style={{fontSize: "11px", color: "#6b7280"}}>
                   {cuponActivo.tipo === "gratis" && "Este envio es GRATIS (sin comision)"}
-                  {cuponActivo.tipo === "descuento" && "50% de descuento aplicado ($0.25 USD)"}
+                  {cuponActivo.tipo === "descuento" && "50% de descuento aplicado ($0.75 USD)"}
                   {cuponActivo.tipo === "vip" && "Tipo de cambio VIP: $18.20 MXN/USD"}
                   {cuponActivo.tipo === "cashback" && `Recibiras $${cuponActivo.valor} USD de cashback`}
                 </div>
@@ -672,7 +833,7 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
           {/* Info blockchain */}
           <div style={{backgroundColor: `${colors.principal}08`, border: `1px solid ${colors.principal}20`, borderRadius: "12px", padding: "16px", marginBottom: "24px"}}>
             <div style={{display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px"}}>
-              <span style={{fontSize: "20px"}}>🔗</span>
+              <Icon nombre="chain" size={20} color="294C74" />
               <span style={{fontSize: "14px", fontWeight: "700", color: colors.principal}}>Registro en Blockchain</span>
             </div>
             <p style={{fontSize: "13px", color: colors.textoSec, margin: 0, lineHeight: "1.6"}}>
@@ -689,8 +850,8 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
 
           {/* Error */}
           {error && (
-            <div style={{backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", marginBottom: "16px", fontSize: "13px", color: "#dc2626"}}>
-              ⚠️ {error}
+            <div style={{backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", marginBottom: "16px", fontSize: "13px", color: "#dc2626", display: "flex", alignItems: "center", gap: "8px"}}>
+              <Icon nombre="error" size={16} color="dc2626" /> {error}
             </div>
           )}
 
@@ -700,7 +861,10 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
             </button>
             <button onClick={registrarEnBlockchain} disabled={procesando}
               style={{flex: 2, backgroundColor: procesando ? colors.apoyo : colors.secundario, color: "white", border: "none", padding: "14px", borderRadius: "12px", fontSize: "14px", fontWeight: "700", cursor: procesando ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"}}>
-              {procesando ? "⏳ Registrando en blockchain..." : "🔗 Confirmar y Registrar"}
+              {procesando
+                ? <><Icon nombre="time" size={16} color="FFFFFF" /> <span>Registrando en blockchain...</span></>
+                : <><Icon nombre="chain" size={16} color="FFFFFF" /> <span>Confirmar y Registrar</span></>
+              }
             </button>
           </div>
 
@@ -726,7 +890,7 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
       {/* PASO 4: EXITO */}
       {paso === 4 && (
         <div style={{backgroundColor: "white", borderRadius: "20px", padding: isMobile ? "24px 20px" : "48px 40px", boxShadow: "0 4px 20px rgba(41,76,116,0.06)", border: `2px solid #16a34a`, textAlign: "center"}}>
-          <div style={{fontSize: "72px", marginBottom: "16px"}}>🎉</div>
+          <div style={{marginBottom: "16px"}}><Icon nombre="confetti" size={72} color="16a34a" /></div>
           <h2 style={{fontSize: "28px", fontWeight: "900", color: "#15803d", margin: "0 0 8px 0"}}>
             Remesa registrada!
           </h2>
@@ -743,8 +907,8 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
           {/* TX Hash */}
           {txHash && (
             <div style={{backgroundColor: colors.contenedor, borderRadius: "12px", padding: "16px", marginBottom: "20px", textAlign: "left"}}>
-              <div style={{fontSize: "12px", fontWeight: "700", color: colors.principal, marginBottom: "8px"}}>
-                🔗 Transaccion registrada en blockchain:
+              <div style={{fontSize: "12px", fontWeight: "700", color: colors.principal, marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px"}}>
+                <Icon nombre="chain" size={13} color="294C74" /> Transaccion registrada en blockchain:
               </div>
               <div style={{fontFamily: "monospace", fontSize: "11px", color: colors.textoSec, wordBreak: "break-all", marginBottom: "10px"}}>
                 {txHash}
@@ -780,18 +944,54 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
 
           <div style={{backgroundColor: colors.contenedor, borderRadius: "14px", padding: "20px", marginBottom: "28px", textAlign: "left"}}>
             {[
-              {icon: "✅", label: "Estado", valor: "Registrado en blockchain"},
-              {icon: "🏦", label: "Banco destino", valor: form.banco},
-              {icon: "💰", label: "Ahorraste", valor: `$${ahorroVsWU} USD vs Western Union`},
-              {icon: "🔒", label: "Seguridad", valor: "Inmutable en Ethereum"},
+              {icon: "checkmark", label: "Estado", valor: "Registrado en blockchain"},
+              {icon: "bank", label: "Banco destino", valor: form.banco},
+              {icon: "coins", label: "Ahorraste", valor: `$${ahorroVsWU} USD vs Western Union`},
+              {icon: "lock-2", label: "Seguridad", valor: "Inmutable en Ethereum"},
             ].map((item, i) => (
               <div key={i} style={{display: "flex", alignItems: "center", gap: "12px", padding: "10px 0", borderBottom: i < 3 ? `1px solid ${colors.apoyo}30` : "none"}}>
-                <span style={{fontSize: "20px"}}>{item.icon}</span>
+                <Icon nombre={item.icon} size={20} color="294C74" />
                 <span style={{fontSize: "13px", color: colors.textoSec, flex: 1}}>{item.label}</span>
                 <span style={{fontSize: "13px", fontWeight: "700", color: colors.principal}}>{item.valor}</span>
               </div>
             ))}
           </div>
+
+          {/* Compartir comprobante */}
+          {txHash && (
+            <button onClick={() => {
+              const texto = `✅ Envié $${cantidadNum} USD a ${form.nombreDestinatario} via Axora\n💰 Recibe: $${cantidadMXN} MXN\n🔗 TX: https://sepolia.etherscan.io/tx/${txHash}\n📱 Axora - Remesas con blockchain`;
+
+              if (navigator.share) {
+                navigator.share({ title: "Comprobante Axora", text: texto })
+                  .catch(err => console.log("Error:", err));
+              } else {
+                try {
+                  const el = document.createElement("textarea");
+                  el.value = texto;
+                  document.body.appendChild(el);
+                  el.select();
+                  document.execCommand("copy");
+                  document.body.removeChild(el);
+                  mostrarToast("¡Comprobante copiado!");
+                } catch(e) {
+                  mostrarToast("No se pudo copiar");
+                }
+              }
+            }} style={{
+              width: "100%", backgroundColor: `${colors.principal}10`,
+              color: colors.principal,
+              border: `2px solid ${colors.principal}20`,
+              padding: "14px", borderRadius: "12px",
+              fontSize: "15px", fontWeight: "700", cursor: "pointer",
+              marginBottom: "12px",
+              display: "flex", alignItems: "center",
+              justifyContent: "center", gap: "8px"
+            }}>
+              <Icon nombre="share" size={20} color="294C74" />
+              Compartir comprobante
+            </button>
+          )}
 
           <button onClick={descargarComprobante} style={{
             width: "100%", backgroundColor: colors.principal, color: "white",
@@ -808,6 +1008,29 @@ export default function EnviarSimple({ colors, usuario, onPuntos, onNotificar })
             style={{width: "100%", backgroundColor: colors.secundario, color: "white", border: "none", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 15px rgba(241,118,51,0.3)"}}>
             Hacer otro envio
           </button>
+        </div>
+      )}
+      {/* Toast de notificación */}
+      {toast && (
+        <div style={{
+          position: "fixed",
+          bottom: "100px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          backgroundColor: toast.tipo === "success" ? "#15803d" : colors.principal,
+          color: "white",
+          padding: "14px 24px",
+          borderRadius: "14px",
+          fontSize: "14px",
+          fontWeight: "700",
+          zIndex: 9999,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+          display: "flex", alignItems: "center", gap: "10px",
+          animation: "slideUp 0.3s ease",
+          whiteSpace: "nowrap"
+        }}>
+          <Icon nombre="checked" size={18} color="FFFFFF" />
+          {toast.mensaje}
         </div>
       )}
     </div>
