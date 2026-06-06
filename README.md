@@ -73,24 +73,24 @@ Actualmente, **millones de personas envían remesas diariamente**:
 ## Cómo Funciona
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────-┐
 │                     FLUJO DE REMESA EN AXORA                     │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  1️⃣  Usuario conecta wallet → 2️⃣  Ingresa datos               │
-│         (MetaMask o Email)        (monto, destinatario)         │
-│           ▼                             ▼                         │
-│           └──────────────────────────────┘                        │
-│                        ▼                                          │
+├─────────────────────────────────────────────────────────────────-┤
+│                                                                  │
+│  1️⃣  Usuario conecta wallet → 2️⃣  Ingresa datos                 │
+│         (MetaMask o Email)        (monto, destinatario)          │
+│           ▼                             ▼                        │
+│           └──────────────────────────────┘                       │
+│                        ▼                                         │
 │  3️⃣  Contrato registra en blockchain (Ethereum Sepolia)         │
-│           ▼                                                       │
+│           ▼                                                      │
 │  4️⃣  Se genera código de pago para Oxxo                         │
-│           ▼                                                       │
+│           ▼                                                      │
 │  5️⃣  Usuario recibe comprobante PDF                             │
-│           ▼                                                       │
-│  6️⃣  Destinatario cobra en Oxxo con código ✅                  │
-│                                                                   │
-└─────────────────────────────────────────────────────────────────┘
+│           ▼                                                      │
+│  6️⃣  Destinatario cobra en Oxxo con código ✅                   │
+│                                                                  │
+└───────────────────────────────────────────────────────────-──────┘
 ```
 
 ---
