@@ -11,21 +11,25 @@
 
 ---
 
-## 📑 Contenido
+<details>
+<summary><b>📑 Tabla de Contenidos</b></summary>
 
 - **[¿Qué es Axora?](#qué-es-axora)** - Conoce nuestra plataforma de remesas
 - **[El Problema](#el-problema)** - Por qué existe Axora
 - **[Características](#características)** - Lo que nos hace especiales
+- **[Características Nuevas](#características-nuevas)** - NFTs, Token AMXN y más
 - **[Cómo Funciona](#cómo-funciona)** - Flujo de la plataforma
 - **[Comparativa de costos](#comparativa-de-costos)** - Por qué somos más económicos
 - **[Tech Stack](#tech-stack)** - Tecnologías utilizadas
-- **[Smart Contracts](#smart-contracts)** - Contratos desplegados
+- **[Smart Contracts](#smart-contracts)** - Contratos desplegados y verificados
 - **[Instalación](#instalación)** - Cómo configurar el proyecto
 - **[Guía de Uso](#guía-de-uso)** - Primeros pasos
 - **[FAQ](#faq)** - Preguntas frecuentes
 - **[Contribuir](#contribuir)** - Cómo colaborar
 - **[Equipo](#equipo)** - Quiénes somos
 - **[Licencia](#licencia)** - Términos legales
+
+</details>
 
 ---
 
@@ -39,6 +43,7 @@ Con Axora, puedes:
 - 🤖 Recibir asistencia 24/7 con nuestro asistente IA
 - ⚡ Automatizar pagos de servicios
 - 📄 Descargar comprobantes instantáneamente
+- 🎁 Ganar recompensas con NFTs y Token AMXN
 
 ---
 
@@ -70,27 +75,53 @@ Actualmente, **millones de personas envían remesas diariamente**:
 
 ---
 
+## Características Nuevas
+
+### 🎁 **Sistema de Recompensas y NFTs**
+Gana recompensas exclusivas por usar Axora:
+- **NFTs coleccionables** por cada remesa exitosa
+- **Token AMXN** que puedes acumular y canjear
+- **Programa de lealtad** con beneficios progresivos
+- **Descuentos especiales** para holders de NFTs
+
+### 💰 **Token AMXN (ERC20)**
+Token nativo del ecosistema Axora:
+- Representa pesos mexicanos digitales
+- Verificado en Etherscan Sepolia
+- Integrado en todas las transacciones
+- Intercambiable dentro de la plataforma
+
+### 📱 **Diseño Responsive Completo**
+- ✅ Landing page profesional
+- ✅ Iconos nativos iOS
+- ✅ Totalmente responsive para móvil
+- ✅ Experiencia optimizada en todos los dispositivos
+
+---
+
 ## Cómo Funciona
 
 ```
-┌─────────────────────────────────────────────────────────────────-┐
+┌─────────────────────────────────────────────────────────────────┐
 │                     FLUJO DE REMESA EN AXORA                     │
-├─────────────────────────────────────────────────────────────────-┤
-│                                                                  │
-│  1️⃣  Usuario conecta wallet → 2️⃣  Ingresa datos                 │
-│         (MetaMask o Email)        (monto, destinatario)          │
-│           ▼                             ▼                        │
-│           └──────────────────────────────┘                       │
-│                        ▼                                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  1️⃣  Usuario conecta wallet → 2️⃣  Ingresa datos               │
+│         (MetaMask o Email)        (monto, destinatario)         │
+│           ▼                             ▼                         │
+│           └──────────────────────────────┘                        │
+│                        ▼                                          │
 │  3️⃣  Contrato registra en blockchain (Ethereum Sepolia)         │
-│           ▼                                                      │
+│           ▼                                                       │
 │  4️⃣  Se genera código de pago para Oxxo                         │
-│           ▼                                                      │
-│  5️⃣  Usuario recibe comprobante PDF                             │
-│           ▼                                                      │
-│  6️⃣  Destinatario cobra en Oxxo con código ✅                   │
-│                                                                  │
-└───────────────────────────────────────────────────────────-──────┘
+│           ▼                                                       │
+│  5️⃣  Usuario recibe comprobante PDF + NFT                       │
+│           ▼                                                       │
+│  6️⃣  Destinatario cobra en Oxxo con código ✅                  │
+│           ▼                                                       │
+│  7️⃣  Usuario gana tokens AMXN como recompensa 🎁                │
+│                                                                   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -112,43 +143,51 @@ Actualmente, **millones de personas envían remesas diariamente**:
 
 ```
 Frontend                    Backend & Blockchain          IA
-├─ Next.js 15             ├─ Ethereum Sepolia           ├─ Groq
-├─ React                  ├─ Solidity 0.8.19            └─ Llama 3.3 70B
-├─ Tailwind CSS           ├─ Ethers.js
+├─ Next.js 16             ├─ Ethereum Sepolia           ├─ Groq
+├─ React 19               ├─ Solidity 0.8.19            ├─ Claude (Anthropic)
+├─ Tailwind CSS 4         ├─ Ethers.js 6.16             └─ Llama 3.3 70B
 └─ TypeScript             └─ Web3 (MetaMask, Wagmi)
 ```
 
 ### Tecnologías Principales
 
-- **Frontend:** Next.js 15, React, Tailwind CSS, TypeScript
-- **Blockchain:** Ethereum Sepolia, Solidity 0.8.19, Ethers.js
-- **Web3:** MetaMask, Wagmi
-- **IA:** Groq (Llama 3.3 70B)
-- **PDF:** jsPDF
-- **Base de datos:** [Especificar si aplica]
+- **Frontend:** Next.js 16.2.4, React 19, Tailwind CSS 4, TypeScript
+- **Blockchain:** Ethereum Sepolia, Solidity 0.8.19, Ethers.js 6.16
+- **Web3:** MetaMask, Wagmi 3.6.8, RainbowKit 2.2.10
+- **IA:** Groq SDK 1.1.2 (Llama 3.3 70B), Anthropic Claude
+- **PDF:** jsPDF 4.2.1
+- **Email:** Nodemailer 8.0.10
+- **Query:** TanStack React Query 5.100.6
+- **Otros:** Viem 2.48.4, OpenAI SDK
 
 ---
 
 ## Smart Contracts
 
-| Contrato | Red | Estado | Dirección |
-|----------|-----|--------|-----------|
-| AxoraRemesas | Sepolia | ✅ Activo | `0xb1a7De81da0F8DB5b82Ef330c2858936E208A85b` |
-| AxoraPagos | Sepolia | 🔄 Pendiente | - |
+### ✅ Contratos Verificados en Etherscan Sepolia
+
+| Contrato | Red | Estado | Dirección | Etherscan |
+|----------|-----|--------|-----------|-----------|
+| **AxoraMXN (AMXN)** | Sepolia | ✅ Verificado | `0xC7a1d6ec0dD17273517d7a30d8c1a3dC284e4293` | [Ver código](https://sepolia.etherscan.io/address/0xC7a1d6ec0dD17273517d7a30d8c1a3dC284e4293#code) |
+| **AxoraRemesas** | Sepolia | ✅ Verificado | `0xaF502b5f2bc0209658A3DeB75ce442Fc1C9338B1` | [Ver código](https://sepolia.etherscan.io/address/0xaF502b5f2bc0209658A3DeB75ce442Fc1C9338B1#code) |
 
 ### Funcionalidades
+
+**AxoraMXN (ERC20):**
+- Token nativo del ecosistema
+- Sistema de recompensas
+- Transferencias entre usuarios
+- Integración con pagos automáticos
 
 **AxoraRemesas:**
 - `crearRemesa()` - Registra nueva remesa en blockchain
 - `confirmarPagoOxxo()` - Confirma pago en Oxxo
+- `completarRemesa()` - Marca remesa como completada
 - `misRemesas()` - Ver tus remesas
+- `verRemesa(id)` - Ver detalle de una remesa
 - `estadisticas()` - Ver estadísticas globales
 
-**AxoraPagos:** (Próximamente)
-- `configurarPago()` - Automatizar pagos recurrentes
-- `ejecutarPago()` - Ejecutar pago mensual
-
-📍 **Verificar contratos:** [Sepolia Etherscan](https://sepolia.etherscan.io/address/0xb1a7De81da0F8DB5b82Ef330c2858936E208A85b)
+📍 **Verificar contratos en:** [Sepolia Etherscan](https://sepolia.etherscan.io/)
 
 ---
 
@@ -166,7 +205,7 @@ Frontend                    Backend & Blockchain          IA
 1. **Clonar el repositorio**
 ```bash
 git clone https://github.com/RaulHernnan/Axora.git
-cd Axora
+cd Axora/remesasmart
 ```
 
 2. **Instalar dependencias**
@@ -176,10 +215,11 @@ npm install --legacy-peer-deps
 
 3. **Configurar variables de entorno**
 
-Crea un archivo `.env.local` en la raíz del proyecto:
+Crea un archivo `.env.local` en `remesasmart/`:
 ```env
 GROQ_API_KEY=tu_api_key_aqui
-NEXT_PUBLIC_CONTRATO_REMESAS=0xb1a7De81da0F8DB5b82Ef330c2858936E208A85b
+NEXT_PUBLIC_CONTRATO_REMESAS=0xaF502b5f2bc0209658A3DeB75ce442Fc1C9338B1
+NEXT_PUBLIC_CONTRATO_TOKEN=0xC7a1d6ec0dD17273517d7a30d8c1a3dC284e4293
 NEXT_PUBLIC_NETWORK=sepolia
 ```
 
@@ -202,6 +242,7 @@ http://localhost:3000
 | Error de dependencias | Intenta: `npm install --legacy-peer-deps --force` |
 | MetaMask no conecta | Asegúrate de estar en red Sepolia |
 | Sin ETH de testnet | Obtén en [Sepolia Faucet](https://www.sepoliafaucet.io/) |
+| GROQ API error | Verifica tu API key en [Groq Console](https://console.groq.com) |
 
 ---
 
@@ -229,6 +270,11 @@ http://localhost:3000
 - Descarga comprobantes en PDF
 - Consulta estado de transacciones
 
+### 5. Recolectar Recompensas
+- Gana NFTs por cada remesa
+- Acumula tokens AMXN
+- Canjea recompensas en tu perfil
+
 ---
 
 ## FAQ
@@ -254,13 +300,18 @@ Sí, todas las transacciones quedan registradas en blockchain de forma inmutable
 </details>
 
 <details>
-<summary><b>¿Qué métodos de pago acepta?</b></summary>
-Actualmente soportamos Oxxo en México. Próximamente: transferencias bancarias y más métodos.
+<summary><b>¿Qué son los tokens AMXN?</b></summary>
+Son recompensas digitales que ganas por usar Axora. Puedes acumularlos, canjearlos o usarlos en pagos dentro de la plataforma.
 </details>
 
 <details>
 <summary><b>¿Cómo obtengo ETH de testnet?</b></summary>
 Visita <a href="https://www.sepoliafaucet.io/">Sepolia Faucet</a> con tu dirección de MetaMask.
+</details>
+
+<details>
+<summary><b>¿Qué métodos de pago acepta?</b></summary>
+Actualmente soportamos Oxxo en México. Próximamente: transferencias bancarias y más métodos.
 </details>
 
 ---
